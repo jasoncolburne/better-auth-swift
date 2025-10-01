@@ -3,66 +3,66 @@ import Foundation
 @testable import BetterAuth
 
 class ClientRotatingKeyStore: IClientRotatingKeyStore {
-  private var current: (any ISigningKey)?
-  private var next: (any ISigningKey)?
-  private let hasher = Hasher()
+    private var current: (any ISigningKey)?
+    private var next: (any ISigningKey)?
+    private let hasher = Hasher()
 
-  func initialize(_ extraData: String?) async throws -> [String] {
-    let current = Secp256r1()
-    let next = Secp256r1()
+    func initialize(_ extraData: String?) async throws -> [String] {
+        let current = Secp256r1()
+        let next = Secp256r1()
 
-    await current.generate()
-    await next.generate()
+        await current.generate()
+        await next.generate()
 
-    self.current = current
-    self.next = next
+        self.current = current
+        self.next = next
 
-    let suffix = extraData ?? ""
+        let suffix = extraData ?? ""
 
-    let publicKey = try await current.public()
-    let rotationHash = try await hasher.sum(try await next.public())
-    let identity = try await hasher.sum(publicKey + rotationHash + suffix)
+        let publicKey = try await current.public()
+        let rotationHash = try await hasher.sum(next.public())
+        let identity = try await hasher.sum(publicKey + rotationHash + suffix)
 
-    return [identity, publicKey, rotationHash]
-  }
-
-  func rotate() async throws -> [String] {
-    guard let next = next else {
-      throw BetterAuthError.callInitializeFirst
+        return [identity, publicKey, rotationHash]
     }
 
-    let newNext = Secp256r1()
-    await newNext.generate()
+    func rotate() async throws -> [String] {
+        guard let next else {
+            throw BetterAuthError.callInitializeFirst
+        }
 
-    self.current = next
-    self.next = newNext
+        let newNext = Secp256r1()
+        await newNext.generate()
 
-    let rotationHash = try await hasher.sum(try await newNext.public())
+        current = next
+        self.next = newNext
 
-    return [try await current!.public(), rotationHash]
-  }
+        let rotationHash = try await hasher.sum(newNext.public())
 
-  func signer() async throws -> any ISigningKey {
-    guard let current = current else {
-      throw BetterAuthError.callInitializeFirst
+        return try await [current!.public(), rotationHash]
     }
 
-    return current
-  }
+    func signer() async throws -> any ISigningKey {
+        guard let current else {
+            throw BetterAuthError.callInitializeFirst
+        }
+
+        return current
+    }
 }
 
 class ClientValueStore: IClientValueStore {
-  private var value: String?
+    private var value: String?
 
-  func store(_ value: String) async throws {
-    self.value = value
-  }
-
-  func get() async throws -> String {
-    guard let value = value else {
-      throw BetterAuthError.nothingToGet
+    func store(_ value: String) async throws {
+        self.value = value
     }
 
-    return value
-  }
+    func get() async throws -> String {
+        guard let value else {
+            throw BetterAuthError.nothingToGet
+        }
+
+        return value
+    }
 }

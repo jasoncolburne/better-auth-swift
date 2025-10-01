@@ -1,6 +1,12 @@
 disabled_rules:
   - trailing_whitespace
+  - force_cast
+  - type_body_length
+  - function_parameter_count
 opt_in_rules:
   - explicit_acl
   - explicit_top_level_acl
 line_length: 120
+excluded:
+  - .build
+  - Tests

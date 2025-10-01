@@ -7,17 +7,18 @@ let package = Package(
     name: "BetterAuth",
     platforms: [
         .macOS(.v13),
-        .iOS(.v16)
+        .iOS(.v16),
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "BetterAuth",
-            targets: ["BetterAuth"]),
+            targets: ["BetterAuth"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/nixberg/blake3-swift.git", from: "0.1.2"),
-        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0")
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -29,7 +30,7 @@ let package = Package(
             dependencies: [
                 "BetterAuth",
                 .product(name: "BLAKE3", package: "blake3-swift"),
-                .product(name: "Crypto", package: "swift-crypto")
+                .product(name: "Crypto", package: "swift-crypto"),
             ]
         ),
     ]
