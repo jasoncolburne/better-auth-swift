@@ -1,0 +1,14 @@
+disabled_rules:
+  - trailing_whitespace
+  - force_cast
+  - type_body_length
+  - function_parameter_count
+opt_in_rules:
+  - explicit_acl
+  - explicit_top_level_acl
+trailing_comma:
+  mandatory_comma: true
+line_length: 120
+excluded:
+  - .build
+  - Tests
