@@ -74,7 +74,7 @@ public class BetterAuthClient {
                 "identity": identity,
                 "publicKey": publicKey,
                 "recoveryHash": recoveryHash,
-                "rotationHash": rotationHash
+                "rotationHash": rotationHash,
             ],
             nonce: nonce
         )
@@ -110,7 +110,7 @@ public class BetterAuthClient {
                 "device": device,
                 "identity": identity,
                 "publicKey": publicKey,
-                "rotationHash": rotationHash
+                "rotationHash": rotationHash,
             ]
         )
 
@@ -126,7 +126,7 @@ public class BetterAuthClient {
         let request = try await LinkDeviceRequest(
             authentication: [
                 "device": deviceIdentifierStore.get(),
-                "identity": identityIdentifierStore.get()
+                "identity": identityIdentifierStore.get(),
             ],
             link: container.toJSON(),
             nonce: nonce
@@ -157,7 +157,7 @@ public class BetterAuthClient {
                 "device": deviceIdentifierStore.get(),
                 "identity": identityIdentifierStore.get(),
                 "publicKey": publicKey,
-                "rotationHash": rotationHash
+                "rotationHash": rotationHash,
             ],
             nonce: nonce
         )
@@ -183,8 +183,8 @@ public class BetterAuthClient {
             access: ["nonce": startNonce],
             request: [
                 "authentication": [
-                    "identity": identityIdentifierStore.get()
-                ]
+                    "identity": identityIdentifierStore.get(),
+                ],
             ]
         )
 
@@ -212,11 +212,11 @@ public class BetterAuthClient {
         let finishRequest = try await FinishAuthenticationRequest(
             access: [
                 "publicKey": currentKey,
-                "rotationHash": nextKeyHash
+                "rotationHash": nextKeyHash,
             ],
             authentication: [
                 "device": deviceIdentifierStore.get(),
-                "nonce": authData["nonce"] as! String
+                "nonce": authData["nonce"] as! String,
             ],
             nonce: finishNonce
         )
@@ -250,8 +250,8 @@ public class BetterAuthClient {
                 "access": [
                     "publicKey": publicKey,
                     "rotationHash": rotationHash,
-                    "token": accessTokenStore.get()
-                ]
+                    "token": accessTokenStore.get(),
+                ],
             ],
             nonce: nonce
         )
@@ -288,8 +288,8 @@ public class BetterAuthClient {
                     "identity": identity,
                     "publicKey": current,
                     "recoveryKey": recoveryKey.public(),
-                    "rotationHash": rotationHash
-                ]
+                    "rotationHash": rotationHash,
+                ],
             ],
             nonce: nonce
         )
@@ -316,7 +316,7 @@ public class BetterAuthClient {
             access: [
                 "nonce": noncer.generate128(),
                 "timestamp": timestamper.format(timestamper.now()),
-                "token": accessTokenStore.get()
+                "token": accessTokenStore.get(),
             ],
             request: request
         )

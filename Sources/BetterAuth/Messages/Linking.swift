@@ -18,7 +18,7 @@ public class LinkContainer: SignableMessage {
     // Convenience initializer for easier construction
     public convenience init(authentication: [String: Any]) {
         let payload: [String: Any] = [
-            "authentication": authentication
+            "authentication": authentication,
         ]
         self.init(payload: payload)
     }
@@ -31,7 +31,7 @@ public class LinkContainer: SignableMessage {
     public func toJSON() -> [String: Any] {
         [
             "payload": _payload,
-            "signature": signature as Any
+            "signature": signature as Any,
         ]
     }
 
@@ -58,7 +58,7 @@ public class LinkDeviceRequest: ClientRequest<[String: Any]> {
     public convenience init(authentication: [String: Any], link: [String: Any], nonce: String) {
         let request: [String: Any] = [
             "authentication": authentication,
-            "link": link
+            "link": link,
         ]
         self.init(request: request, nonce: nonce)
     }

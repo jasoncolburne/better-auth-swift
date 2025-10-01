@@ -11,9 +11,9 @@ public class ClientRequest<T>: SignableMessage {
     public init(request: T, nonce: String) {
         _payload = [
             "access": [
-                "nonce": nonce
+                "nonce": nonce,
             ],
-            "request": request
+            "request": request,
         ]
         super.init()
         super.payload = _payload

@@ -12,9 +12,9 @@ public class ServerResponse<T>: SignableMessage {
         _payload = [
             "access": [
                 "nonce": nonce,
-                "responseKeyHash": responseKeyHash
+                "responseKeyHash": responseKeyHash,
             ],
-            "response": response
+            "response": response,
         ]
         super.init()
         super.payload = _payload

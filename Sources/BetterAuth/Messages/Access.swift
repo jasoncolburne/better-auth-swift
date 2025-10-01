@@ -40,7 +40,7 @@ public class AccessToken<T>: SignableMessage {
             "issuedAt": issuedAt,
             "expiry": expiry,
             "refreshExpiry": refreshExpiry,
-            "attributes": attributes
+            "attributes": attributes,
         ]
 
         super.init()
@@ -130,7 +130,7 @@ public class AccessRequest<T>: SignableMessage {
     public init(access: [String: Any], request: T) {
         _payload = [
             "access": access,
-            "request": request
+            "request": request,
         ]
         super.init()
         super.payload = _payload

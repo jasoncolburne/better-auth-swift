@@ -5,7 +5,7 @@ public class CreationRequest: ClientRequest<[String: Any]> {
     // Called from Client.swift as: CreationRequest(authentication: [...], nonce: nonce)
     public init(authentication: [String: Any], nonce: String) {
         let request: [String: Any] = [
-            "authentication": authentication
+            "authentication": authentication,
         ]
         super.init(request: request, nonce: nonce)
     }
