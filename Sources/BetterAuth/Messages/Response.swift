@@ -12,9 +12,9 @@ public class ServerResponse<T>: SignableMessage {
         _payload = [
             "access": [
                 "nonce": nonce,
-                "responseKeyHash": responseKeyHash,
+                "responseKeyHash": responseKeyHash
             ],
-            "response": response,
+            "response": response
         ]
         super.init()
         super.payload = _payload
@@ -41,8 +41,7 @@ public class ServerResponse<T>: SignableMessage {
         // Extract the original payload string from the message for verification
         // This preserves the exact serialization (including key order) that was signed by the server
         if let range = message.range(of: "\"payload\":"),
-           let endRange = message.range(of: ",\"signature\":", range: range.upperBound ..< message.endIndex)
-        {
+           let endRange = message.range(of: ",\"signature\":", range: range.upperBound ..< message.endIndex) {
             result.originalPayloadString = String(message[range.upperBound ..< endRange.lowerBound])
         }
 

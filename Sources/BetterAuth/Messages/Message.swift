@@ -7,7 +7,7 @@ public protocol SerializableMessage {
 open class SignableMessage: SerializableMessage {
     public var payload: Any?
     public var signature: String?
-    var originalPayloadString: String?
+    public var originalPayloadString: String?
 
     public init() {}
 

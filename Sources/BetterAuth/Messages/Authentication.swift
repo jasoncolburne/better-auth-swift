@@ -8,7 +8,7 @@ public class StartAuthenticationRequest: SerializableMessage {
     public init(access: [String: Any], request: [String: Any]) {
         payload = [
             "access": access,
-            "request": request,
+            "request": request
         ]
     }
 
@@ -18,7 +18,7 @@ public class StartAuthenticationRequest: SerializableMessage {
 
     public func serialize() async throws -> String {
         let json: [String: Any] = [
-            "payload": payload,
+            "payload": payload
         ]
         let jsonData = try JSONSerialization.data(withJSONObject: json, options: [.sortedKeys])
         return String(data: jsonData, encoding: .utf8)!
@@ -49,7 +49,7 @@ public class FinishAuthenticationRequest: ClientRequest<[String: Any]> {
     public init(access: [String: Any], authentication: [String: Any], nonce: String) {
         let request: [String: Any] = [
             "access": access,
-            "authentication": authentication,
+            "authentication": authentication
         ]
         super.init(request: request, nonce: nonce)
     }
