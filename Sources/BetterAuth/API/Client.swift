@@ -81,7 +81,7 @@ public class BetterAuthClient {
 
         try await request.sign(authenticationKeyStore.signer())
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.register.create, message)
+        let reply = try await network.sendRequest(paths.account.create, message)
 
         let response = try CreationResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
@@ -121,12 +121,18 @@ public class BetterAuthClient {
 
     public func linkDevice(_ linkContainer: String) async throws {
         let container = try LinkContainer.parse(linkContainer)
+
+        let result = try await authenticationKeyStore.rotate()
+        let publicKey = result[0]
+        let rotationHash = result[1]
         let nonce = try await noncer.generate128()
 
         let request = try await LinkDeviceRequest(
             authentication: [
                 "device": deviceIdentifierStore.get(),
                 "identity": identityIdentifierStore.get(),
+                "publicKey": publicKey,
+                "rotationHash": rotationHash,
             ],
             link: container.toJSON(),
             nonce: nonce
@@ -134,9 +140,48 @@ public class BetterAuthClient {
 
         try await request.sign(authenticationKeyStore.signer())
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.register.link, message)
+        let reply = try await network.sendRequest(paths.rotate.link, message)
 
         let response = try LinkDeviceResponse.parse(reply)
+        let responsePayload = response.payload as! [String: Any]
+        let access = responsePayload["access"] as! [String: Any]
+        try await verifyResponse(response, access["responseKeyHash"] as! String)
+
+        if access["nonce"] as! String != nonce {
+            throw BetterAuthError.incorrectNonce
+        }
+    }
+
+    public func unlinkDevice(_ device: String) async throws {
+        let result = try await authenticationKeyStore.rotate()
+        let publicKey = result[0]
+        var rotationHash = result[1]
+        let nonce = try await noncer.generate128()
+
+        let currentDevice = try await deviceIdentifierStore.get()
+        if (device == currentDevice) {
+            // prevent rotation if disabling this device
+            rotationHash = try await hasher.sum(rotationHash)
+        }
+
+        let request = try await UnlinkDeviceRequest(
+            authentication: [
+                "device": deviceIdentifierStore.get(),
+                "identity": identityIdentifierStore.get(),
+                "publicKey": publicKey,
+                "rotationHash": rotationHash,
+            ],
+            link: [
+                "device": device,
+            ],
+            nonce: nonce
+        )
+
+        try await request.sign(authenticationKeyStore.signer())
+        let message = try await request.serialize()
+        let reply = try await network.sendRequest(paths.rotate.unlink, message)
+
+        let response = try UnlinkDeviceResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["responseKeyHash"] as! String)
@@ -274,7 +319,7 @@ public class BetterAuthClient {
         try await accessTokenStore.store(accessInfo["token"] as! String)
     }
 
-    public func recoverAccount(_ identity: String, _ recoveryKey: any ISigningKey) async throws {
+    public func recoverAccount(_ identity: String, _ recoveryKey: any ISigningKey, _ recoveryHash: String) async throws {
         let result = try await authenticationKeyStore.initialize(nil)
         let current = result[1]
         let rotationHash = result[2]
@@ -287,6 +332,7 @@ public class BetterAuthClient {
                     "device": device,
                     "identity": identity,
                     "publicKey": current,
+                    "recoveryHash": recoveryHash,
                     "recoveryKey": recoveryKey.public(),
                     "rotationHash": rotationHash,
                 ],
@@ -296,7 +342,7 @@ public class BetterAuthClient {
 
         try await request.sign(recoveryKey)
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.register.recover, message)
+        let reply = try await network.sendRequest(paths.rotate.recover, message)
 
         let response = try RecoverAccountResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]

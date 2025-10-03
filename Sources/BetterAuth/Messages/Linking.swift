@@ -77,3 +77,32 @@ public class LinkDeviceResponse: ServerResponse<[String: Any]> {
         } as! LinkDeviceResponse
     }
 }
+
+public class UnlinkDeviceRequest: ClientRequest<[String: Any]> {
+    override public init(request: [String: Any], nonce: String) {
+        super.init(request: request, nonce: nonce)
+    }
+
+    // Convenience initializer for easier construction
+    public convenience init(authentication: [String: Any], link: [String: Any], nonce: String) {
+        let request: [String: Any] = [
+            "authentication": authentication,
+            "link": link,
+        ]
+        self.init(request: request, nonce: nonce)
+    }
+
+    public static func parse(_ message: String) throws -> UnlinkDeviceRequest {
+        try ClientRequest<[String: Any]>.parse(message) { request, nonce in
+            UnlinkDeviceRequest(request: request, nonce: nonce)
+        } as! UnlinkDeviceRequest
+    }
+}
+
+public class UnlinkDeviceResponse: ServerResponse<[String: Any]> {
+    public static func parse(_ message: String) throws -> UnlinkDeviceResponse {
+        try ServerResponse<[String: Any]>.parse(message) { response, publicKeyHash, nonce in
+            UnlinkDeviceResponse(response: response, responseKeyHash: publicKeyHash, nonce: nonce)
+        } as! UnlinkDeviceResponse
+    }
+}
