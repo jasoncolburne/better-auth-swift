@@ -31,14 +31,15 @@ let authenticationPaths = IAuthenticationPaths(
         start: "/authenticate/start",
         finish: "/authenticate/finish"
     ),
-    register: RegisterPaths(
-        create: "/register/create",
-        link: "/register/link",
-        recover: "/register/recover"
+    account: AccountPaths(
+        create: "/account/create"
     ),
     rotate: RotatePaths(
         authentication: "/rotate/authentication",
-        access: "/rotate/access"
+        access: "/rotate/access",
+        link: "/rotate/link",
+        unlink: "/rotate/unlink",
+        recover: "/rotate/recover"
     )
 )
 
@@ -182,7 +183,12 @@ final class IntegrationTests: XCTestCase {
         let recoveryHash = try await hasher.sum(recoverySigner.public())
         try await betterAuthClient.createAccount(recoveryHash)
         let identity = try await betterAuthClient.identity()
-        try await recoveredBetterAuthClient.recoverAccount(identity, recoverySigner)
+        let nextRecoverySigner = Secp256r1()
+        await nextRecoverySigner.generate()
+        let nextRecoverySignerPublicKey = try await nextRecoverySigner.public()
+        let nextRecoveryHash = try await hasher.sum(nextRecoverySignerPublicKey)
+
+        try await recoveredBetterAuthClient.recoverAccount(identity, recoverySigner, nextRecoveryHash)
         try await executeFlow(recoveredBetterAuthClient, eccVerifier, responseVerificationKey)
     }
 
@@ -240,6 +246,7 @@ final class IntegrationTests: XCTestCase {
         // submit an endorsed link container with existing device
         try await betterAuthClient.linkDevice(linkContainer)
         try await executeFlow(linkedBetterAuthClient, eccVerifier, responseVerificationKey)
+        try await linkedBetterAuthClient.unlinkDevice(betterAuthClient.device())
     }
 
     func testDetectsMismatchedAccessNonce() async throws {
