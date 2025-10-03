@@ -153,10 +153,11 @@ public class BetterAuthClient {
     }
 
     public func unlinkDevice(_ device: String) async throws {
+        let nonce = try await noncer.generate128()
+
         let result = try await authenticationKeyStore.rotate()
         let publicKey = result[0]
         var rotationHash = result[1]
-        let nonce = try await noncer.generate128()
 
         let currentDevice = try await deviceIdentifierStore.get()
         if device == currentDevice {
@@ -166,7 +167,7 @@ public class BetterAuthClient {
 
         let request = try await UnlinkDeviceRequest(
             authentication: [
-                "device": deviceIdentifierStore.get(),
+                "device": currentDevice,
                 "identity": identityIdentifierStore.get(),
                 "publicKey": publicKey,
                 "rotationHash": rotationHash,
