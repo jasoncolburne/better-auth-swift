@@ -159,7 +159,7 @@ public class BetterAuthClient {
         let nonce = try await noncer.generate128()
 
         let currentDevice = try await deviceIdentifierStore.get()
-        if (device == currentDevice) {
+        if device == currentDevice {
             // prevent rotation if disabling this device
             rotationHash = try await hasher.sum(rotationHash)
         }

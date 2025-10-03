@@ -246,7 +246,7 @@ final class IntegrationTests: XCTestCase {
         // submit an endorsed link container with existing device
         try await betterAuthClient.linkDevice(linkContainer)
         try await executeFlow(linkedBetterAuthClient, eccVerifier, responseVerificationKey)
-        try await linkedBetterAuthClient.unlinkDevice(try await betterAuthClient.device())
+        try await linkedBetterAuthClient.unlinkDevice(betterAuthClient.device())
     }
 
     func testDetectsMismatchedAccessNonce() async throws {
