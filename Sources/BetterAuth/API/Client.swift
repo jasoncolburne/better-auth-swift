@@ -319,7 +319,11 @@ public class BetterAuthClient {
         try await accessTokenStore.store(accessInfo["token"] as! String)
     }
 
-    public func recoverAccount(_ identity: String, _ recoveryKey: any ISigningKey, _ recoveryHash: String) async throws {
+    public func recoverAccount(
+        _ identity: String,
+        _ recoveryKey: any ISigningKey,
+        _ recoveryHash: String
+    ) async throws {
         let result = try await authenticationKeyStore.initialize(nil)
         let current = result[1]
         let rotationHash = result[2]
