@@ -74,7 +74,7 @@ class VerificationKeyStore: IVerificationKeyStore {
         self.verificationKey = verificationKey
     }
 
-    func get(identity: String) async throws -> any IVerificationKey {
+    func get(identity _: String) async throws -> any IVerificationKey {
         verificationKey
     }
 }
