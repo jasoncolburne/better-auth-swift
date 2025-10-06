@@ -38,3 +38,7 @@ public protocol IServerTimeLockStore {
     var lifetimeInSeconds: Int { get }
     func reserve(_ value: String) async throws
 }
+
+public protocol IVerificationKeyStore {
+    func get(identity: String) async throws -> any IVerificationKey
+}

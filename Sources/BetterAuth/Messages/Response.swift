@@ -8,11 +8,11 @@ public class ServerResponse<T>: SignableMessage {
 
     private var _payload: [String: Any]
 
-    public init(response: T, responseKeyHash: String, nonce: String) {
+    public init(response: T, serverIdentity: String, nonce: String) {
         _payload = [
             "access": [
                 "nonce": nonce,
-                "responseKeyHash": responseKeyHash,
+                "serverIdentity": serverIdentity,
             ],
             "response": response,
         ]
@@ -29,13 +29,13 @@ public class ServerResponse<T>: SignableMessage {
               let payload = json["payload"] as? [String: Any],
               let access = payload["access"] as? [String: Any],
               let response = payload["response"] as? U,
-              let responseKeyHash = access["responseKeyHash"] as? String,
+              let serverIdentity = access["serverIdentity"] as? String,
               let nonce = access["nonce"] as? String
         else {
             throw BetterAuthError.invalidData
         }
 
-        let result = constructor(response, responseKeyHash, nonce)
+        let result = constructor(response, serverIdentity, nonce)
         result.signature = json["signature"] as? String
 
         // Extract the original payload string from the message for verification
@@ -51,8 +51,8 @@ public class ServerResponse<T>: SignableMessage {
 
 public class ScannableResponse: ServerResponse<[String: Any]> {
     public static func parse(_ message: String) throws -> ScannableResponse {
-        try ServerResponse<[String: Any]>.parse(message) { response, publicKeyHash, nonce in
-            ScannableResponse(response: response, responseKeyHash: publicKeyHash, nonce: nonce)
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
+            ScannableResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
         } as! ScannableResponse
     }
 }

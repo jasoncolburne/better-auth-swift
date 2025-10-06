@@ -66,3 +66,15 @@ class ClientValueStore: IClientValueStore {
         return value
     }
 }
+
+class VerificationKeyStore: IVerificationKeyStore {
+    private let verificationKey: any IVerificationKey
+
+    init(_ verificationKey: any IVerificationKey) {
+        self.verificationKey = verificationKey
+    }
+
+    func get(identity: String) async throws -> any IVerificationKey {
+        verificationKey
+    }
+}

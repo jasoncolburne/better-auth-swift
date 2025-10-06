@@ -3,7 +3,7 @@ import Foundation
 public class BetterAuthClient {
     private let hasher: any IHasher
     private let noncer: any INoncer
-    private let responsePublicKey: any IVerificationKey
+    private let verificationKeyStore: any IVerificationKeyStore
     private let timestamper: any ITimestamper
     private let network: any INetwork
     private let paths: IAuthenticationPaths
@@ -16,7 +16,7 @@ public class BetterAuthClient {
     public init(
         hasher: any IHasher,
         noncer: any INoncer,
-        responsePublicKey: any IVerificationKey,
+        verificationKeyStore: any IVerificationKeyStore,
         timestamper: any ITimestamper,
         network: any INetwork,
         paths: IAuthenticationPaths,
@@ -28,7 +28,7 @@ public class BetterAuthClient {
     ) {
         self.hasher = hasher
         self.noncer = noncer
-        self.responsePublicKey = responsePublicKey
+        self.verificationKeyStore = verificationKeyStore
         self.timestamper = timestamper
         self.network = network
         self.paths = paths
@@ -47,15 +47,10 @@ public class BetterAuthClient {
         try await deviceIdentifierStore.get()
     }
 
-    private func verifyResponse(_ response: SignableMessage, _ publicKeyHash: String) async throws {
-        let publicKey = try await responsePublicKey.public()
-        let hash = try await hasher.sum(publicKey)
-
-        if hash != publicKeyHash {
-            throw BetterAuthError.hashMismatch
-        }
-
-        let verifier = responsePublicKey.verifier()
+    private func verifyResponse(_ response: SignableMessage, _ serverIdentity: String) async throws {
+        let verificationKey = try await verificationKeyStore.get(identity: serverIdentity)
+        let publicKey = try await verificationKey.public()
+        let verifier = verificationKey.verifier()
         try await response.verify(verifier, publicKey)
     }
 
@@ -86,7 +81,7 @@ public class BetterAuthClient {
         let response = try CreationResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
         let access = responsePayload["access"] as! [String: Any]
-        try await verifyResponse(response, access["responseKeyHash"] as! String)
+        try await verifyResponse(response, access["serverIdentity"] as! String)
 
         if access["nonce"] as! String != nonce {
             throw BetterAuthError.incorrectNonce
@@ -145,7 +140,7 @@ public class BetterAuthClient {
         let response = try LinkDeviceResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
         let access = responsePayload["access"] as! [String: Any]
-        try await verifyResponse(response, access["responseKeyHash"] as! String)
+        try await verifyResponse(response, access["serverIdentity"] as! String)
 
         if access["nonce"] as! String != nonce {
             throw BetterAuthError.incorrectNonce
@@ -185,7 +180,7 @@ public class BetterAuthClient {
         let response = try UnlinkDeviceResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
         let access = responsePayload["access"] as! [String: Any]
-        try await verifyResponse(response, access["responseKeyHash"] as! String)
+        try await verifyResponse(response, access["serverIdentity"] as! String)
 
         if access["nonce"] as! String != nonce {
             throw BetterAuthError.incorrectNonce
@@ -215,7 +210,7 @@ public class BetterAuthClient {
         let response = try RotateAuthenticationKeyResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
         let access = responsePayload["access"] as! [String: Any]
-        try await verifyResponse(response, access["responseKeyHash"] as! String)
+        try await verifyResponse(response, access["serverIdentity"] as! String)
 
         if access["nonce"] as! String != nonce {
             throw BetterAuthError.incorrectNonce
@@ -240,7 +235,7 @@ public class BetterAuthClient {
         let startResponse = try StartAuthenticationResponse.parse(startReply)
         let startPayload = startResponse.payload as! [String: Any]
         let startAccess = startPayload["access"] as! [String: Any]
-        try await verifyResponse(startResponse, startAccess["responseKeyHash"] as! String)
+        try await verifyResponse(startResponse, startAccess["serverIdentity"] as! String)
 
         if startAccess["nonce"] as! String != startNonce {
             throw BetterAuthError.incorrectNonce
@@ -274,7 +269,7 @@ public class BetterAuthClient {
         let finishResponse = try FinishAuthenticationResponse.parse(finishReply)
         let finishPayload = finishResponse.payload as! [String: Any]
         let finishAccess = finishPayload["access"] as! [String: Any]
-        try await verifyResponse(finishResponse, finishAccess["responseKeyHash"] as! String)
+        try await verifyResponse(finishResponse, finishAccess["serverIdentity"] as! String)
 
         if finishAccess["nonce"] as! String != finishNonce {
             throw BetterAuthError.incorrectNonce
@@ -309,7 +304,7 @@ public class BetterAuthClient {
         let response = try RefreshAccessTokenResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
         let access = responsePayload["access"] as! [String: Any]
-        try await verifyResponse(response, access["responseKeyHash"] as! String)
+        try await verifyResponse(response, access["serverIdentity"] as! String)
 
         if access["nonce"] as! String != nonce {
             throw BetterAuthError.incorrectNonce
@@ -352,7 +347,7 @@ public class BetterAuthClient {
         let response = try RecoverAccountResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
         let access = responsePayload["access"] as! [String: Any]
-        try await verifyResponse(response, access["responseKeyHash"] as! String)
+        try await verifyResponse(response, access["serverIdentity"] as! String)
 
         if access["nonce"] as! String != nonce {
             throw BetterAuthError.incorrectNonce
