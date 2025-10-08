@@ -63,7 +63,7 @@ public class BetterAuthClient {
 
         let nonce = try await noncer.generate128()
 
-        let request = CreationRequest(
+        let request = CreateAccountRequest(
             authentication: [
                 "device": device,
                 "identity": identity,
@@ -78,7 +78,49 @@ public class BetterAuthClient {
         let message = try await request.serialize()
         let reply = try await network.sendRequest(paths.account.create, message)
 
-        let response = try CreationResponse.parse(reply)
+        let response = try CreateAccountResponse.parse(reply)
+        let responsePayload = response.payload as! [String: Any]
+        let access = responsePayload["access"] as! [String: Any]
+        try await verifyResponse(response, access["serverIdentity"] as! String)
+
+        if access["nonce"] as! String != nonce {
+            throw BetterAuthError.incorrectNonce
+        }
+
+        try await identityIdentifierStore.store(identity)
+        try await deviceIdentifierStore.store(device)
+    }
+
+    public func recoverAccount(
+        _ identity: String,
+        _ recoveryKey: any ISigningKey,
+        _ recoveryHash: String
+    ) async throws {
+        let result = try await authenticationKeyStore.initialize(nil)
+        let current = result[1]
+        let rotationHash = result[2]
+        let device = try await hasher.sum(current)
+        let nonce = try await noncer.generate128()
+
+        let request = try await RecoverAccountRequest(
+            request: [
+                "authentication": [
+                    "device": device,
+                    "identity": identity,
+                    "publicKey": current,
+                    "recoveryHash": recoveryHash,
+                    "recoveryKey": recoveryKey.public(),
+                    "rotationHash": rotationHash,
+                ],
+            ],
+            nonce: nonce
+        )
+
+        try await request.sign(recoveryKey)
+        let message = try await request.serialize()
+        let reply = try await network.sendRequest(paths.account.recover, message)
+
+        let response = try RecoverAccountResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
@@ -135,7 +177,7 @@ public class BetterAuthClient {
 
         try await request.sign(authenticationKeyStore.signer())
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.rotate.link, message)
+        let reply = try await network.sendRequest(paths.device.link, message)
 
         let response = try LinkDeviceResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
@@ -175,7 +217,7 @@ public class BetterAuthClient {
 
         try await request.sign(authenticationKeyStore.signer())
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.rotate.unlink, message)
+        let reply = try await network.sendRequest(paths.device.unlink, message)
 
         let response = try UnlinkDeviceResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
@@ -187,13 +229,13 @@ public class BetterAuthClient {
         }
     }
 
-    public func rotateAuthenticationKey() async throws {
+    public func rotateDevice() async throws {
         let result = try await authenticationKeyStore.rotate()
         let publicKey = result[0]
         let rotationHash = result[1]
         let nonce = try await noncer.generate128()
 
-        let request = try await RotateAuthenticationKeyRequest(
+        let request = try await RotateDeviceRequest(
             authentication: [
                 "device": deviceIdentifierStore.get(),
                 "identity": identityIdentifierStore.get(),
@@ -205,9 +247,9 @@ public class BetterAuthClient {
 
         try await request.sign(authenticationKeyStore.signer())
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.rotate.authentication, message)
+        let reply = try await network.sendRequest(paths.device.rotate, message)
 
-        let response = try RotateAuthenticationKeyResponse.parse(reply)
+        let response = try RotateDeviceResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
@@ -217,10 +259,10 @@ public class BetterAuthClient {
         }
     }
 
-    public func authenticate() async throws {
+    public func createSession() async throws {
         let startNonce = try await noncer.generate128()
 
-        let startRequest = try await StartAuthenticationRequest(
+        let startRequest = try await RequestSessionRequest(
             access: ["nonce": startNonce],
             request: [
                 "authentication": [
@@ -230,9 +272,9 @@ public class BetterAuthClient {
         )
 
         let startMessage = try await startRequest.serialize()
-        let startReply = try await network.sendRequest(paths.authenticate.start, startMessage)
+        let startReply = try await network.sendRequest(paths.session.request, startMessage)
 
-        let startResponse = try StartAuthenticationResponse.parse(startReply)
+        let startResponse = try RequestSessionResponse.parse(startReply)
         let startPayload = startResponse.payload as! [String: Any]
         let startAccess = startPayload["access"] as! [String: Any]
         try await verifyResponse(startResponse, startAccess["serverIdentity"] as! String)
@@ -250,7 +292,7 @@ public class BetterAuthClient {
         let responseData = startResponsePayload["response"] as! [String: Any]
         let authData = responseData["authentication"] as! [String: Any]
 
-        let finishRequest = try await FinishAuthenticationRequest(
+        let finishRequest = try await CreateSessionRequest(
             access: [
                 "publicKey": currentKey,
                 "rotationHash": nextKeyHash,
@@ -264,9 +306,9 @@ public class BetterAuthClient {
 
         try await finishRequest.sign(authenticationKeyStore.signer())
         let finishMessage = try await finishRequest.serialize()
-        let finishReply = try await network.sendRequest(paths.authenticate.finish, finishMessage)
+        let finishReply = try await network.sendRequest(paths.session.create, finishMessage)
 
-        let finishResponse = try FinishAuthenticationResponse.parse(finishReply)
+        let finishResponse = try CreateSessionResponse.parse(finishReply)
         let finishPayload = finishResponse.payload as! [String: Any]
         let finishAccess = finishPayload["access"] as! [String: Any]
         try await verifyResponse(finishResponse, finishAccess["serverIdentity"] as! String)
@@ -280,13 +322,13 @@ public class BetterAuthClient {
         try await accessTokenStore.store(accessInfo["token"] as! String)
     }
 
-    public func refreshAccessToken() async throws {
+    public func refreshSession() async throws {
         let result = try await accessKeyStore.rotate()
         let publicKey = result[0]
         let rotationHash = result[1]
         let nonce = try await noncer.generate128()
 
-        let request = try await RefreshAccessTokenRequest(
+        let request = try await RefreshSessionRequest(
             request: [
                 "access": [
                     "publicKey": publicKey,
@@ -299,9 +341,9 @@ public class BetterAuthClient {
 
         try await request.sign(accessKeyStore.signer())
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.rotate.access, message)
+        let reply = try await network.sendRequest(paths.session.refresh, message)
 
-        let response = try RefreshAccessTokenResponse.parse(reply)
+        let response = try RefreshSessionResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
@@ -313,48 +355,6 @@ public class BetterAuthClient {
         let responseData = responsePayload["response"] as! [String: Any]
         let accessInfo = responseData["access"] as! [String: Any]
         try await accessTokenStore.store(accessInfo["token"] as! String)
-    }
-
-    public func recoverAccount(
-        _ identity: String,
-        _ recoveryKey: any ISigningKey,
-        _ recoveryHash: String
-    ) async throws {
-        let result = try await authenticationKeyStore.initialize(nil)
-        let current = result[1]
-        let rotationHash = result[2]
-        let device = try await hasher.sum(current)
-        let nonce = try await noncer.generate128()
-
-        let request = try await RecoverAccountRequest(
-            request: [
-                "authentication": [
-                    "device": device,
-                    "identity": identity,
-                    "publicKey": current,
-                    "recoveryHash": recoveryHash,
-                    "recoveryKey": recoveryKey.public(),
-                    "rotationHash": rotationHash,
-                ],
-            ],
-            nonce: nonce
-        )
-
-        try await request.sign(recoveryKey)
-        let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.rotate.recover, message)
-
-        let response = try RecoverAccountResponse.parse(reply)
-        let responsePayload = response.payload as! [String: Any]
-        let access = responsePayload["access"] as! [String: Any]
-        try await verifyResponse(response, access["serverIdentity"] as! String)
-
-        if access["nonce"] as! String != nonce {
-            throw BetterAuthError.incorrectNonce
-        }
-
-        try await identityIdentifierStore.store(identity)
-        try await deviceIdentifierStore.store(device)
     }
 
     public func makeAccessRequest<T>(_ path: String, _ request: T) async throws -> String {

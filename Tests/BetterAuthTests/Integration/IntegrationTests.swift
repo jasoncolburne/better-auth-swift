@@ -27,19 +27,19 @@ class Secp256r1VerificationKey: IVerificationKey {
 }
 
 let authenticationPaths = IAuthenticationPaths(
-    authenticate: AuthenticatePaths(
-        start: "/authenticate/start",
-        finish: "/authenticate/finish"
-    ),
     account: AccountPaths(
-        create: "/account/create"
+        create: "/account/create",
+        recover: "/account/recover"
     ),
-    rotate: RotatePaths(
-        authentication: "/rotate/authentication",
-        access: "/rotate/access",
-        link: "/rotate/link",
-        unlink: "/rotate/unlink",
-        recover: "/rotate/recover"
+    session: SessionPaths(
+        request: "/session/request",
+        create: "/session/create",
+        refresh: "/session/refresh"
+    ),
+    device: DevicePaths(
+        rotate: "/device/rotate",
+        link: "/device/link",
+        unlink: "/device/unlink"
     )
 )
 
@@ -78,9 +78,9 @@ func executeFlow(
     _ eccVerifier: any IVerifier,
     _ responseVerificationKey: any IVerificationKey
 ) async throws {
-    try await betterAuthClient.rotateAuthenticationKey()
-    try await betterAuthClient.authenticate()
-    try await betterAuthClient.refreshAccessToken()
+    try await betterAuthClient.rotateDevice()
+    try await betterAuthClient.createSession()
+    try await betterAuthClient.refreshSession()
 
     try await testAccess(betterAuthClient, eccVerifier, responseVerificationKey)
 }
@@ -280,7 +280,7 @@ final class IntegrationTests: XCTestCase {
         try await betterAuthClient.createAccount(recoveryHash)
 
         do {
-            try await betterAuthClient.authenticate()
+            try await betterAuthClient.createSession()
             let message: [String: String] = [
                 "foo": "bar",
                 "bar": "foo",

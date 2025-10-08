@@ -106,3 +106,43 @@ public class UnlinkDeviceResponse: ServerResponse<[String: Any]> {
         } as! UnlinkDeviceResponse
     }
 }
+
+public class RotateDeviceRequest: ClientRequest<[String: Any]> {
+    // Constructor matching Dart: RotateDeviceRequest(Map<String, dynamic> request, String nonce)
+    // Called from Client.swift as: RotateDeviceRequest(authentication: [...], nonce: nonce)
+    public init(authentication: [String: Any], nonce: String) {
+        let request: [String: Any] = [
+            "authentication": authentication,
+        ]
+        super.init(request: request, nonce: nonce)
+    }
+
+    public static func parse(_ message: String) throws -> RotateDeviceRequest {
+        let baseRequest = try ClientRequest<[String: Any]>.parse(message) { request, nonce in
+            ClientRequest<[String: Any]>(request: request, nonce: nonce)
+        }
+
+        guard let payload = baseRequest.payload as? [String: Any],
+              let request = payload["request"] as? [String: Any],
+              let authentication = request["authentication"] as? [String: Any],
+              let access = payload["access"] as? [String: Any],
+              let nonce = access["nonce"] as? String
+        else {
+            throw BetterAuthError.invalidData
+        }
+
+        let result = RotateDeviceRequest(authentication: authentication, nonce: nonce)
+        result.signature = baseRequest.signature
+        return result
+    }
+}
+
+public class RotateDeviceResponse: ServerResponse<[String: Any]> {
+    public static func parse(_ message: String) throws -> RotateDeviceResponse {
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
+            RotateDeviceResponse(
+                response: response, serverIdentity: serverIdentity, nonce: nonce
+            )
+        } as! RotateDeviceResponse
+    }
+}
