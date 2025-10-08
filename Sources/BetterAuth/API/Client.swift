@@ -135,7 +135,7 @@ public class BetterAuthClient {
 
         try await request.sign(authenticationKeyStore.signer())
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.rotate.link, message)
+        let reply = try await network.sendRequest(paths.device.link, message)
 
         let response = try LinkDeviceResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
@@ -175,7 +175,7 @@ public class BetterAuthClient {
 
         try await request.sign(authenticationKeyStore.signer())
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.rotate.unlink, message)
+        let reply = try await network.sendRequest(paths.device.unlink, message)
 
         let response = try UnlinkDeviceResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
@@ -205,7 +205,7 @@ public class BetterAuthClient {
 
         try await request.sign(authenticationKeyStore.signer())
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.rotate.authentication, message)
+        let reply = try await network.sendRequest(paths.device.rotate, message)
 
         let response = try RotateAuthenticationKeyResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
@@ -230,7 +230,7 @@ public class BetterAuthClient {
         )
 
         let startMessage = try await startRequest.serialize()
-        let startReply = try await network.sendRequest(paths.authenticate.start, startMessage)
+        let startReply = try await network.sendRequest(paths.session.request, startMessage)
 
         let startResponse = try StartAuthenticationResponse.parse(startReply)
         let startPayload = startResponse.payload as! [String: Any]
@@ -264,7 +264,7 @@ public class BetterAuthClient {
 
         try await finishRequest.sign(authenticationKeyStore.signer())
         let finishMessage = try await finishRequest.serialize()
-        let finishReply = try await network.sendRequest(paths.authenticate.finish, finishMessage)
+        let finishReply = try await network.sendRequest(paths.session.connect, finishMessage)
 
         let finishResponse = try FinishAuthenticationResponse.parse(finishReply)
         let finishPayload = finishResponse.payload as! [String: Any]
@@ -299,7 +299,7 @@ public class BetterAuthClient {
 
         try await request.sign(accessKeyStore.signer())
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.rotate.access, message)
+        let reply = try await network.sendRequest(paths.session.refresh, message)
 
         let response = try RefreshAccessTokenResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
@@ -342,7 +342,7 @@ public class BetterAuthClient {
 
         try await request.sign(recoveryKey)
         let message = try await request.serialize()
-        let reply = try await network.sendRequest(paths.rotate.recover, message)
+        let reply = try await network.sendRequest(paths.account.recover, message)
 
         let response = try RecoverAccountResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]

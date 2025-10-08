@@ -27,19 +27,19 @@ class Secp256r1VerificationKey: IVerificationKey {
 }
 
 let authenticationPaths = IAuthenticationPaths(
-    authenticate: AuthenticatePaths(
-        start: "/authenticate/start",
-        finish: "/authenticate/finish"
-    ),
     account: AccountPaths(
-        create: "/account/create"
+        create: "/account/create",
+        recover: "/account/recover"
     ),
-    rotate: RotatePaths(
-        authentication: "/rotate/authentication",
-        access: "/rotate/access",
-        link: "/rotate/link",
-        unlink: "/rotate/unlink",
-        recover: "/rotate/recover"
+    session: SessionPaths(
+        request: "/session/request",
+        connect: "/session/connect",
+        refresh: "/session/refresh"
+    ),
+    device: DevicePaths(
+        rotate: "/device/rotate",
+        link: "/device/link",
+        unlink: "/device/unlink"
     )
 )
 
