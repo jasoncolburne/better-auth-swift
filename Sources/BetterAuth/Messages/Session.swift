@@ -1,10 +1,10 @@
 import Foundation
 
-public class StartAuthenticationRequest: SerializableMessage {
+public class RequestSessionRequest: SerializableMessage {
     public let payload: [String: Any]
 
-    // Constructor matching Dart: StartAuthenticationRequest(Map<String, dynamic> payload)
-    // Called from Client.swift as: StartAuthenticationRequest(access: [...], request: [...])
+    // Constructor matching Dart: RequestSessionRequest(Map<String, dynamic> payload)
+    // Called from Client.swift as: RequestSessionRequest(access: [...], request: [...])
     public init(access: [String: Any], request: [String: Any]) {
         payload = [
             "access": access,
@@ -24,28 +24,28 @@ public class StartAuthenticationRequest: SerializableMessage {
         return String(data: jsonData, encoding: .utf8)!
     }
 
-    public static func parse(_ message: String) throws -> StartAuthenticationRequest {
+    public static func parse(_ message: String) throws -> RequestSessionRequest {
         guard let data = message.data(using: .utf8),
               let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let payload = json["payload"] as? [String: Any]
         else {
             throw BetterAuthError.invalidData
         }
-        return StartAuthenticationRequest(payload: payload)
+        return RequestSessionRequest(payload: payload)
     }
 }
 
-public class StartAuthenticationResponse: ServerResponse<[String: Any]> {
-    public static func parse(_ message: String) throws -> StartAuthenticationResponse {
+public class RequestSessionResponse: ServerResponse<[String: Any]> {
+    public static func parse(_ message: String) throws -> RequestSessionResponse {
         try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
-            StartAuthenticationResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
-        } as! StartAuthenticationResponse
+            RequestSessionResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
+        } as! RequestSessionResponse
     }
 }
 
-public class FinishAuthenticationRequest: ClientRequest<[String: Any]> {
-    // Constructor matching Dart: FinishAuthenticationRequest(Map<String, dynamic> request, String nonce)
-    // Called from Client.swift as: FinishAuthenticationRequest(access: [...], authentication: [...], nonce: nonce)
+public class CreateSessionRequest: ClientRequest<[String: Any]> {
+    // Constructor matching Dart: CreateSessionRequest(Map<String, dynamic> request, String nonce)
+    // Called from Client.swift as: CreateSessionRequest(access: [...], authentication: [...], nonce: nonce)
     public init(access: [String: Any], authentication: [String: Any], nonce: String) {
         let request: [String: Any] = [
             "access": access,
@@ -54,7 +54,7 @@ public class FinishAuthenticationRequest: ClientRequest<[String: Any]> {
         super.init(request: request, nonce: nonce)
     }
 
-    public static func parse(_ message: String) throws -> FinishAuthenticationRequest {
+    public static func parse(_ message: String) throws -> CreateSessionRequest {
         // First parse the base request
         let baseRequest = try ClientRequest<[String: Any]>.parse(message) { request, nonce in
             // Return a temporary ClientRequest - we'll validate and reconstruct below
@@ -72,16 +72,36 @@ public class FinishAuthenticationRequest: ClientRequest<[String: Any]> {
             throw BetterAuthError.invalidData
         }
 
-        let result = FinishAuthenticationRequest(access: access, authentication: auth, nonce: nonce)
+        let result = CreateSessionRequest(access: access, authentication: auth, nonce: nonce)
         result.signature = baseRequest.signature
         return result
     }
 }
 
-public class FinishAuthenticationResponse: ServerResponse<[String: Any]> {
-    public static func parse(_ message: String) throws -> FinishAuthenticationResponse {
+public class CreateSessionResponse: ServerResponse<[String: Any]> {
+    public static func parse(_ message: String) throws -> CreateSessionResponse {
         try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
-            FinishAuthenticationResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
-        } as! FinishAuthenticationResponse
+            CreateSessionResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
+        } as! CreateSessionResponse
+    }
+}
+
+public class RefreshSessionRequest: ClientRequest<[String: Any]> {
+    override public init(request: [String: Any], nonce: String) {
+        super.init(request: request, nonce: nonce)
+    }
+
+    public static func parse(_ message: String) throws -> RefreshSessionRequest {
+        try ClientRequest<[String: Any]>.parse(message) { request, nonce in
+            RefreshSessionRequest(request: request, nonce: nonce)
+        } as! RefreshSessionRequest
+    }
+}
+
+public class RefreshSessionResponse: ServerResponse<[String: Any]> {
+    public static func parse(_ message: String) throws -> RefreshSessionResponse {
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
+            RefreshSessionResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
+        } as! RefreshSessionResponse
     }
 }

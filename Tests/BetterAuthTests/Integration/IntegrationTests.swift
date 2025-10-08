@@ -78,9 +78,9 @@ func executeFlow(
     _ eccVerifier: any IVerifier,
     _ responseVerificationKey: any IVerificationKey
 ) async throws {
-    try await betterAuthClient.rotateAuthenticationKey()
-    try await betterAuthClient.authenticate()
-    try await betterAuthClient.refreshAccessToken()
+    try await betterAuthClient.rotateDevice()
+    try await betterAuthClient.createSession()
+    try await betterAuthClient.refreshSession()
 
     try await testAccess(betterAuthClient, eccVerifier, responseVerificationKey)
 }
@@ -280,7 +280,7 @@ final class IntegrationTests: XCTestCase {
         try await betterAuthClient.createAccount(recoveryHash)
 
         do {
-            try await betterAuthClient.authenticate()
+            try await betterAuthClient.createSession()
             let message: [String: String] = [
                 "foo": "bar",
                 "bar": "foo",
