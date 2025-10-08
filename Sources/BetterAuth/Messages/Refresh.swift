@@ -14,8 +14,8 @@ public class RefreshAccessTokenRequest: ClientRequest<[String: Any]> {
 
 public class RefreshAccessTokenResponse: ServerResponse<[String: Any]> {
     public static func parse(_ message: String) throws -> RefreshAccessTokenResponse {
-        try ServerResponse<[String: Any]>.parse(message) { response, publicKeyHash, nonce in
-            RefreshAccessTokenResponse(response: response, responseKeyHash: publicKeyHash, nonce: nonce)
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
+            RefreshAccessTokenResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
         } as! RefreshAccessTokenResponse
     }
 }

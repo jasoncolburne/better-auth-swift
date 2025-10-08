@@ -10,8 +10,8 @@ public class RecoverAccountRequest: ClientRequest<[String: Any]> {
 
 public class RecoverAccountResponse: ServerResponse<[String: Any]> {
     public static func parse(_ message: String) throws -> RecoverAccountResponse {
-        try ServerResponse<[String: Any]>.parse(message) { response, publicKeyHash, nonce in
-            RecoverAccountResponse(response: response, responseKeyHash: publicKeyHash, nonce: nonce)
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
+            RecoverAccountResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
         } as! RecoverAccountResponse
     }
 }

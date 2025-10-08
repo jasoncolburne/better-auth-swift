@@ -32,9 +32,9 @@ public class RotateAuthenticationKeyRequest: ClientRequest<[String: Any]> {
 
 public class RotateAuthenticationKeyResponse: ServerResponse<[String: Any]> {
     public static func parse(_ message: String) throws -> RotateAuthenticationKeyResponse {
-        try ServerResponse<[String: Any]>.parse(message) { response, publicKeyHash, nonce in
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
             RotateAuthenticationKeyResponse(
-                response: response, responseKeyHash: publicKeyHash, nonce: nonce
+                response: response, serverIdentity: serverIdentity, nonce: nonce
             )
         } as! RotateAuthenticationKeyResponse
     }

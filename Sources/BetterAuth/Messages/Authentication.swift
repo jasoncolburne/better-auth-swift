@@ -37,8 +37,8 @@ public class StartAuthenticationRequest: SerializableMessage {
 
 public class StartAuthenticationResponse: ServerResponse<[String: Any]> {
     public static func parse(_ message: String) throws -> StartAuthenticationResponse {
-        try ServerResponse<[String: Any]>.parse(message) { response, publicKeyHash, nonce in
-            StartAuthenticationResponse(response: response, responseKeyHash: publicKeyHash, nonce: nonce)
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
+            StartAuthenticationResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
         } as! StartAuthenticationResponse
     }
 }
@@ -80,8 +80,8 @@ public class FinishAuthenticationRequest: ClientRequest<[String: Any]> {
 
 public class FinishAuthenticationResponse: ServerResponse<[String: Any]> {
     public static func parse(_ message: String) throws -> FinishAuthenticationResponse {
-        try ServerResponse<[String: Any]>.parse(message) { response, publicKeyHash, nonce in
-            FinishAuthenticationResponse(response: response, responseKeyHash: publicKeyHash, nonce: nonce)
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
+            FinishAuthenticationResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
         } as! FinishAuthenticationResponse
     }
 }

@@ -72,8 +72,8 @@ public class LinkDeviceRequest: ClientRequest<[String: Any]> {
 
 public class LinkDeviceResponse: ServerResponse<[String: Any]> {
     public static func parse(_ message: String) throws -> LinkDeviceResponse {
-        try ServerResponse<[String: Any]>.parse(message) { response, publicKeyHash, nonce in
-            LinkDeviceResponse(response: response, responseKeyHash: publicKeyHash, nonce: nonce)
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
+            LinkDeviceResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
         } as! LinkDeviceResponse
     }
 }
@@ -101,8 +101,8 @@ public class UnlinkDeviceRequest: ClientRequest<[String: Any]> {
 
 public class UnlinkDeviceResponse: ServerResponse<[String: Any]> {
     public static func parse(_ message: String) throws -> UnlinkDeviceResponse {
-        try ServerResponse<[String: Any]>.parse(message) { response, publicKeyHash, nonce in
-            UnlinkDeviceResponse(response: response, responseKeyHash: publicKeyHash, nonce: nonce)
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
+            UnlinkDeviceResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
         } as! UnlinkDeviceResponse
     }
 }

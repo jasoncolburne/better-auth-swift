@@ -67,8 +67,8 @@ class Network: INetwork {
 
 class FakeResponse: ServerResponse<[String: Any]> {
     static func parse(_ message: String) throws -> FakeResponse {
-        try ServerResponse<[String: Any]>.parse(message) { response, publicKeyHash, nonce in
-            FakeResponse(response: response, responseKeyHash: publicKeyHash, nonce: nonce)
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
+            FakeResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
         } as! FakeResponse
     }
 }
@@ -123,7 +123,7 @@ final class IntegrationTests: XCTestCase {
         let betterAuthClient = BetterAuthClient(
             hasher: hasher,
             noncer: noncer,
-            responsePublicKey: responseVerificationKey,
+            verificationKeyStore: VerificationKeyStore(responseVerificationKey),
             timestamper: Rfc3339Nano(),
             network: network,
             paths: authenticationPaths,
@@ -155,7 +155,7 @@ final class IntegrationTests: XCTestCase {
         let betterAuthClient = BetterAuthClient(
             hasher: hasher,
             noncer: noncer,
-            responsePublicKey: responseVerificationKey,
+            verificationKeyStore: VerificationKeyStore(responseVerificationKey),
             timestamper: Rfc3339Nano(),
             network: network,
             paths: authenticationPaths,
@@ -169,7 +169,7 @@ final class IntegrationTests: XCTestCase {
         let recoveredBetterAuthClient = BetterAuthClient(
             hasher: Hasher(),
             noncer: Noncer(),
-            responsePublicKey: responseVerificationKey,
+            verificationKeyStore: VerificationKeyStore(responseVerificationKey),
             timestamper: Rfc3339Nano(),
             network: network,
             paths: authenticationPaths,
@@ -208,7 +208,7 @@ final class IntegrationTests: XCTestCase {
         let betterAuthClient = BetterAuthClient(
             hasher: hasher,
             noncer: noncer,
-            responsePublicKey: responseVerificationKey,
+            verificationKeyStore: VerificationKeyStore(responseVerificationKey),
             timestamper: Rfc3339Nano(),
             network: network,
             paths: authenticationPaths,
@@ -222,7 +222,7 @@ final class IntegrationTests: XCTestCase {
         let linkedBetterAuthClient = BetterAuthClient(
             hasher: Hasher(),
             noncer: Noncer(),
-            responsePublicKey: responseVerificationKey,
+            verificationKeyStore: VerificationKeyStore(responseVerificationKey),
             timestamper: Rfc3339Nano(),
             network: network,
             paths: authenticationPaths,
@@ -265,7 +265,7 @@ final class IntegrationTests: XCTestCase {
         let betterAuthClient = BetterAuthClient(
             hasher: hasher,
             noncer: noncer,
-            responsePublicKey: responseVerificationKey,
+            verificationKeyStore: VerificationKeyStore(responseVerificationKey),
             timestamper: Rfc3339Nano(),
             network: network,
             paths: authenticationPaths,

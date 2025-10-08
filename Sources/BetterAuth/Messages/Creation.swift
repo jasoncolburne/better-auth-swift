@@ -32,8 +32,8 @@ public class CreationRequest: ClientRequest<[String: Any]> {
 
 public class CreationResponse: ServerResponse<[String: Any]> {
     public static func parse(_ message: String) throws -> CreationResponse {
-        try ServerResponse<[String: Any]>.parse(message) { response, publicKeyHash, nonce in
-            CreationResponse(response: response, responseKeyHash: publicKeyHash, nonce: nonce)
+        try ServerResponse<[String: Any]>.parse(message) { response, serverIdentity, nonce in
+            CreationResponse(response: response, serverIdentity: serverIdentity, nonce: nonce)
         } as! CreationResponse
     }
 }
