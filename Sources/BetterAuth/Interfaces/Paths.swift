@@ -12,12 +12,12 @@ public struct AccountPaths: Sendable {
 
 public struct SessionPaths: Sendable {
     public let request: String
-    public let connect: String
+    public let create: String
     public let refresh: String
 
-    public init(request: String, connect: String, refresh: String) {
+    public init(request: String, create: String, refresh: String) {
         self.request = request
-        self.connect = connect
+        self.create = create
         self.refresh = refresh
     }
 }

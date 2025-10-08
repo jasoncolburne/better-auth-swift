@@ -264,7 +264,7 @@ public class BetterAuthClient {
 
         try await finishRequest.sign(authenticationKeyStore.signer())
         let finishMessage = try await finishRequest.serialize()
-        let finishReply = try await network.sendRequest(paths.session.connect, finishMessage)
+        let finishReply = try await network.sendRequest(paths.session.create, finishMessage)
 
         let finishResponse = try FinishAuthenticationResponse.parse(finishReply)
         let finishPayload = finishResponse.payload as! [String: Any]
