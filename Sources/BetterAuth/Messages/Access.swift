@@ -24,16 +24,4 @@ public class AccessRequest<T>: SignableMessage {
         super.init()
         super.payload = _payload
     }
-
-    public static func parse(_ message: String) throws -> AccessRequest<T> {
-        guard let data = message.data(using: .utf8),
-              let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let payload = json["payload"] as? [String: Any]
-        else {
-            throw BetterAuthError.invalidData
-        }
-        let result = AccessRequest<T>(payload: payload)
-        result.signature = json["signature"] as? String
-        return result
-    }
 }
