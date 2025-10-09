@@ -7,7 +7,8 @@ class Rfc3339Nano: ITimestamper {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let isoString = formatter.string(from: when)
-        return isoString.replacingOccurrences(of: "Z", with: "000000Z")
+        // withFractionalSeconds gives microseconds (6 digits), append 3 zeros for nanoseconds (9 digits)
+        return isoString.replacingOccurrences(of: "Z", with: "000Z")
     }
 
     func parse(_ when: Any) throws -> Date {
