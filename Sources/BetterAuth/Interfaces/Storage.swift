@@ -8,7 +8,21 @@ public protocol IClientValueStore {
 
 public protocol IClientRotatingKeyStore {
     func initialize(_ extraData: String?) async throws -> [String]
-    func rotate() async throws -> [String]
+
+    // returns: [key, rotationHash]
+    //
+    // this should return the _next_ signing key and a hash of the subsequent key
+    // if no subsequent key exists yet, it should first be generated
+    //
+    // this facilitates a failed network request during a rotation operation
+    func next() async throws -> [Any]
+
+    // throw an exception if:
+    // - next() has not been called since the last call to initialize() or rotate()
+    //
+    // this is the commit operation of next()
+    func rotate() async throws
+
     func signer() async throws -> any ISigningKey
 }
 

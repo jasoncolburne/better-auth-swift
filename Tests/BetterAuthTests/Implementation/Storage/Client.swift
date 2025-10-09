@@ -3,8 +3,9 @@ import Foundation
 @testable import BetterAuth
 
 class ClientRotatingKeyStore: IClientRotatingKeyStore {
-    private var current: (any ISigningKey)?
-    private var next: (any ISigningKey)?
+    private var currentKey: (any ISigningKey)?
+    private var nextKey: (any ISigningKey)?
+    private var futureKey: (any ISigningKey)?
     private let hasher = Hasher()
 
     func initialize(_ extraData: String?) async throws -> [String] {
@@ -14,8 +15,8 @@ class ClientRotatingKeyStore: IClientRotatingKeyStore {
         await current.generate()
         await next.generate()
 
-        self.current = current
-        self.next = next
+        currentKey = current
+        nextKey = next
 
         let suffix = extraData ?? ""
 
@@ -26,28 +27,42 @@ class ClientRotatingKeyStore: IClientRotatingKeyStore {
         return [identity, publicKey, rotationHash]
     }
 
-    func rotate() async throws -> [String] {
-        guard let next else {
+    func next() async throws -> [Any] {
+        guard let nextKey else {
             throw BetterAuthError.callInitializeFirst
         }
 
-        let newNext = Secp256r1()
-        await newNext.generate()
+        if futureKey == nil {
+            let key = Secp256r1()
+            await key.generate()
+            futureKey = key
+        }
 
-        current = next
-        self.next = newNext
+        let rotationHash = try await hasher.sum(futureKey!.public())
 
-        let rotationHash = try await hasher.sum(newNext.public())
+        return [nextKey, rotationHash]
+    }
 
-        return try await [current!.public(), rotationHash]
+    func rotate() async throws {
+        guard let nextKey else {
+            throw BetterAuthError.callInitializeFirst
+        }
+
+        guard let futureKey else {
+            throw BetterAuthError.callNextFirst
+        }
+
+        currentKey = nextKey
+        self.nextKey = futureKey
+        self.futureKey = nil
     }
 
     func signer() async throws -> any ISigningKey {
-        guard let current else {
+        guard let currentKey else {
             throw BetterAuthError.callInitializeFirst
         }
 
-        return current
+        return currentKey
     }
 }
 

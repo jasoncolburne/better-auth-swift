@@ -49,6 +49,7 @@ public enum BetterAuthError: Error {
     case keypairNotGenerated
     case nothingToGet
     case callInitializeFirst
+    case callNextFirst
     case tokenFromFuture
     case tokenExpired
     case staleRequest
