@@ -1,4 +1,5 @@
 import XCTest
+import OrderedCollections
 
 @testable import BetterAuth
 
@@ -90,7 +91,7 @@ func testAccess(
     _ eccVerifier: any IVerifier,
     _ responseVerificationKey: any IVerificationKey
 ) async throws {
-    let message: [String: String] = [
+    let message: OrderedDictionary<String, String> = [
         "foo": "bar",
         "bar": "foo",
     ]
@@ -281,7 +282,7 @@ final class IntegrationTests: XCTestCase {
 
         do {
             try await betterAuthClient.createSession()
-            let message: [String: String] = [
+            let message: OrderedDictionary<String, String> = [
                 "foo": "bar",
                 "bar": "foo",
             ]
