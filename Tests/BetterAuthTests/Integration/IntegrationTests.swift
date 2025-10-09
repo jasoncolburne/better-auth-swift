@@ -1,5 +1,5 @@
-import XCTest
 import OrderedCollections
+import XCTest
 
 @testable import BetterAuth
 
