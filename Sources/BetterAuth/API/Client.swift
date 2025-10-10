@@ -55,10 +55,7 @@ public class BetterAuthClient {
     }
 
     public func createAccount(_ recoveryHash: String) async throws {
-        let result = try await authenticationKeyStore.initialize(recoveryHash)
-        let identity = result[0]
-        let publicKey = result[1]
-        let rotationHash = result[2]
+        let (identity, publicKey, rotationHash) = try await authenticationKeyStore.initialize(recoveryHash)
         let device = try await hasher.sum(publicKey)
 
         let nonce = try await noncer.generate128()
@@ -96,10 +93,8 @@ public class BetterAuthClient {
         _ recoveryKey: any ISigningKey,
         _ recoveryHash: String
     ) async throws {
-        let result = try await authenticationKeyStore.initialize(nil)
-        let current = result[1]
-        let rotationHash = result[2]
-        let device = try await hasher.sum(current)
+        let (_, publicKey, rotationHash) = try await authenticationKeyStore.initialize(nil)
+        let device = try await hasher.sum(publicKey)
         let nonce = try await noncer.generate128()
 
         let request = try await RecoverAccountRequest(
@@ -107,7 +102,7 @@ public class BetterAuthClient {
                 "authentication": [
                     "device": device,
                     "identity": identity,
-                    "publicKey": current,
+                    "publicKey": publicKey,
                     "recoveryHash": recoveryHash,
                     "recoveryKey": recoveryKey.public(),
                     "rotationHash": rotationHash,
@@ -134,9 +129,7 @@ public class BetterAuthClient {
     }
 
     public func generateLinkContainer(_ identity: String) async throws -> String {
-        let result = try await authenticationKeyStore.initialize(nil)
-        let publicKey = result[1]
-        let rotationHash = result[2]
+        let (_, publicKey, rotationHash) = try await authenticationKeyStore.initialize(nil)
         let device = try await hasher.sum(publicKey)
 
         try await identityIdentifierStore.store(identity)
@@ -159,9 +152,7 @@ public class BetterAuthClient {
     public func linkDevice(_ linkContainer: String) async throws {
         let container = try LinkContainer.parse(linkContainer)
         let nonce = try await noncer.generate128()
-        let result = try await authenticationKeyStore.next()
-        let signingKey = result[0] as! any ISigningKey
-        let rotationHash = result[1] as! String
+        let (signingKey, rotationHash) = try await authenticationKeyStore.next()
 
         let request = try await LinkDeviceRequest(
             authentication: [
@@ -192,14 +183,13 @@ public class BetterAuthClient {
 
     public func unlinkDevice(_ device: String) async throws {
         let nonce = try await noncer.generate128()
-        let result = try await authenticationKeyStore.next()
-        let signingKey = result[0] as! any ISigningKey
-        var rotationHash = result[1] as! String
+        let (signingKey, rotationHash) = try await authenticationKeyStore.next()
+        var hash = rotationHash
 
         let currentDevice = try await deviceIdentifierStore.get()
         if device == currentDevice {
             // prevent rotation if disabling this device
-            rotationHash = try await hasher.sum(rotationHash)
+            hash = try await hasher.sum(rotationHash)
         }
 
         let request = try await UnlinkDeviceRequest(
@@ -207,7 +197,7 @@ public class BetterAuthClient {
                 "device": currentDevice,
                 "identity": identityIdentifierStore.get(),
                 "publicKey": signingKey.public(),
-                "rotationHash": rotationHash,
+                "rotationHash": hash,
             ],
             link: [
                 "device": device,
@@ -232,9 +222,7 @@ public class BetterAuthClient {
     }
 
     public func rotateDevice() async throws {
-        let result = try await authenticationKeyStore.next()
-        let signingKey = result[0] as! any ISigningKey
-        let rotationHash = result[1] as! String
+        let (signingKey, rotationHash) = try await authenticationKeyStore.next()
         let nonce = try await noncer.generate128()
 
         let request = try await RotateDeviceRequest(
@@ -287,9 +275,7 @@ public class BetterAuthClient {
             throw BetterAuthError.incorrectNonce
         }
 
-        let accessResult = try await accessKeyStore.initialize(nil)
-        let currentKey = accessResult[1]
-        let nextKeyHash = accessResult[2]
+        let (_, publicKey, rotationHash) = try await accessKeyStore.initialize(nil)
         let finishNonce = try await noncer.generate128()
 
         let startResponsePayload = startResponse.payload as! [String: Any]
@@ -298,8 +284,8 @@ public class BetterAuthClient {
 
         let finishRequest = try await CreateSessionRequest(
             access: [
-                "publicKey": currentKey,
-                "rotationHash": nextKeyHash,
+                "publicKey": publicKey,
+                "rotationHash": rotationHash,
             ],
             authentication: [
                 "device": deviceIdentifierStore.get(),
@@ -327,9 +313,7 @@ public class BetterAuthClient {
     }
 
     public func refreshSession() async throws {
-        let result = try await accessKeyStore.next()
-        let signingKey = result[0] as! any ISigningKey
-        let rotationHash = result[1] as! String
+        let (signingKey, rotationHash) = try await accessKeyStore.next()
         let nonce = try await noncer.generate128()
 
         let request = try await RefreshSessionRequest(

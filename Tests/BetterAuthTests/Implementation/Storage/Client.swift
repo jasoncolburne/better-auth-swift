@@ -8,7 +8,7 @@ class ClientRotatingKeyStore: IClientRotatingKeyStore {
     private var futureKey: (any ISigningKey)?
     private let hasher = Hasher()
 
-    func initialize(_ extraData: String?) async throws -> [String] {
+    func initialize(_ extraData: String?) async throws -> (String, String, String) {
         let current = Secp256r1()
         let next = Secp256r1()
 
@@ -24,10 +24,10 @@ class ClientRotatingKeyStore: IClientRotatingKeyStore {
         let rotationHash = try await hasher.sum(next.public())
         let identity = try await hasher.sum(publicKey + rotationHash + suffix)
 
-        return [identity, publicKey, rotationHash]
+        return (identity, publicKey, rotationHash)
     }
 
-    func next() async throws -> [Any] {
+    func next() async throws -> (any ISigningKey, String) {
         guard let nextKey else {
             throw BetterAuthError.callInitializeFirst
         }
@@ -40,7 +40,7 @@ class ClientRotatingKeyStore: IClientRotatingKeyStore {
 
         let rotationHash = try await hasher.sum(futureKey!.public())
 
-        return [nextKey, rotationHash]
+        return (nextKey, rotationHash)
     }
 
     func rotate() async throws {

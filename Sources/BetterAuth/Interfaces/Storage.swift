@@ -7,7 +7,8 @@ public protocol IClientValueStore {
 }
 
 public protocol IClientRotatingKeyStore {
-    func initialize(_ extraData: String?) async throws -> [String]
+    // swiftlint:disable:next large_tuple
+    func initialize(_ extraData: String?) async throws -> (String, String, String)
 
     // returns: [key, rotationHash]
     //
@@ -15,7 +16,7 @@ public protocol IClientRotatingKeyStore {
     // if no subsequent key exists yet, it should first be generated
     //
     // this facilitates a failed network request during a rotation operation
-    func next() async throws -> [Any]
+    func next() async throws -> (any ISigningKey, String)
 
     // throw an exception if:
     // - next() has not been called since the last call to initialize() or rotate()
