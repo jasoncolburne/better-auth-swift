@@ -30,7 +30,8 @@ class Secp256r1VerificationKey: IVerificationKey {
 let authenticationPaths = IAuthenticationPaths(
     account: AccountPaths(
         create: "/account/create",
-        recover: "/account/recover"
+        recover: "/account/recover",
+        delete: "/account/delete"
     ),
     session: SessionPaths(
         request: "/session/request",
@@ -138,6 +139,7 @@ final class IntegrationTests: XCTestCase {
         let recoveryHash = try await hasher.sum(recoverySigner.public())
         try await betterAuthClient.createAccount(recoveryHash)
         try await executeFlow(betterAuthClient, eccVerifier, responseVerificationKey)
+        try await betterAuthClient.deleteAccount()
     }
 
     func testRecoversFromLoss() async throws {

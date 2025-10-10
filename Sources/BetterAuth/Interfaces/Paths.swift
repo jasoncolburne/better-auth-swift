@@ -3,10 +3,12 @@ import Foundation
 public struct AccountPaths: Sendable {
     public let create: String
     public let recover: String
+    public let delete: String
 
-    public init(create: String, recover: String) {
+    public init(create: String, recover: String, delete: String) {
         self.create = create
         self.recover = recover
+        self.delete = delete
     }
 }
 
