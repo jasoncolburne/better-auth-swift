@@ -139,6 +139,7 @@ final class IntegrationTests: XCTestCase {
         let recoveryHash = try await hasher.sum(recoverySigner.public())
         try await betterAuthClient.createAccount(recoveryHash)
         try await executeFlow(betterAuthClient, eccVerifier, responseVerificationKey)
+        try await betterAuthClient.deleteAccount()
     }
 
     func testRecoversFromLoss() async throws {
