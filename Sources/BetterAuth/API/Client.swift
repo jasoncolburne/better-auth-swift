@@ -56,7 +56,7 @@ public class BetterAuthClient {
 
     public func createAccount(_ recoveryHash: String) async throws {
         let (identity, publicKey, rotationHash) = try await authenticationKeyStore.initialize(recoveryHash)
-        let device = try await hasher.sum(publicKey)
+        let device = try await hasher.sum(publicKey + rotationHash)
 
         let nonce = try await noncer.generate128()
 
@@ -94,7 +94,7 @@ public class BetterAuthClient {
         _ recoveryHash: String
     ) async throws {
         let (_, publicKey, rotationHash) = try await authenticationKeyStore.initialize(nil)
-        let device = try await hasher.sum(publicKey)
+        let device = try await hasher.sum(publicKey + rotationHash)
         let nonce = try await noncer.generate128()
 
         let request = try await RecoverAccountRequest(
@@ -130,7 +130,7 @@ public class BetterAuthClient {
 
     public func generateLinkContainer(_ identity: String) async throws -> String {
         let (_, publicKey, rotationHash) = try await authenticationKeyStore.initialize(nil)
-        let device = try await hasher.sum(publicKey)
+        let device = try await hasher.sum(publicKey + rotationHash)
 
         try await identityIdentifierStore.store(identity)
         try await deviceIdentifierStore.store(device)
