@@ -30,7 +30,8 @@ class Secp256r1VerificationKey: IVerificationKey {
 let authenticationPaths = IAuthenticationPaths(
     account: AccountPaths(
         create: "/account/create",
-        recover: "/account/recover"
+        recover: "/account/recover",
+        delete: "/account/delete"
     ),
     session: SessionPaths(
         request: "/session/request",

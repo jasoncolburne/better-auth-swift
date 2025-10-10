@@ -1,5 +1,7 @@
 import Foundation
 
+// swiftlint:disable file_length
+
 public class BetterAuthClient {
     private let hasher: any IHasher
     private let noncer: any INoncer
@@ -210,6 +212,40 @@ public class BetterAuthClient {
         let reply = try await network.sendRequest(paths.device.unlink, message)
 
         let response = try UnlinkDeviceResponse.parse(reply)
+        let responsePayload = response.payload as! [String: Any]
+        let access = responsePayload["access"] as! [String: Any]
+        try await verifyResponse(response, access["serverIdentity"] as! String)
+
+        if access["nonce"] as! String != nonce {
+            throw BetterAuthError.incorrectNonce
+        }
+
+        try await authenticationKeyStore.rotate()
+    }
+
+    public func deleteAccount() async throws {
+        let nonce = try await noncer.generate128()
+        let (signingKey, rotationHash) = try await authenticationKeyStore.next()
+
+        let device = try await deviceIdentifierStore.get()
+        let identity = try await identityIdentifierStore.get()
+        let publicKey = try await signingKey.public()
+
+        let request = DeleteAccountRequest(
+            authentication: [
+                "device": device,
+                "identity": identity,
+                "publicKey": publicKey,
+                "rotationHash": rotationHash,
+            ],
+            nonce: nonce
+        )
+
+        try await request.sign(signingKey)
+        let message = try await request.serialize()
+        let reply = try await network.sendRequest(paths.account.delete, message)
+
+        let response = try DeleteAccountResponse.parse(reply)
         let responsePayload = response.payload as! [String: Any]
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
