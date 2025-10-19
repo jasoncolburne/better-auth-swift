@@ -42,6 +42,9 @@ let authenticationPaths = IAuthenticationPaths(
         rotate: "/device/rotate",
         link: "/device/link",
         unlink: "/device/unlink"
+    ),
+    recovery: RecoveryPaths(
+        change: "/recovery/change"
     )
 )
 
@@ -186,12 +189,16 @@ final class IntegrationTests: XCTestCase {
         let recoveryHash = try await hasher.sum(recoverySigner.public())
         try await betterAuthClient.createAccount(recoveryHash)
         let identity = try await betterAuthClient.identity()
-        let nextRecoverySigner = Secp256r1()
-        await nextRecoverySigner.generate()
-        let nextRecoverySignerPublicKey = try await nextRecoverySigner.public()
-        let nextRecoveryHash = try await hasher.sum(nextRecoverySignerPublicKey)
 
-        try await recoveredBetterAuthClient.recoverAccount(identity, recoverySigner, nextRecoveryHash)
+        let newRecoverySigner = Secp256r1()
+        let nextRecoverySigner = Secp256r1()
+        await newRecoverySigner.generate()
+        await nextRecoverySigner.generate()
+        let newRecoveryHash = try await hasher.sum(newRecoverySigner.public())
+        let nextRecoveryHash = try await hasher.sum(nextRecoverySigner.public())
+
+        try await betterAuthClient.changeRecoveryKey(recoveryHash: newRecoveryHash)
+        try await recoveredBetterAuthClient.recoverAccount(identity, newRecoverySigner, nextRecoveryHash)
         try await executeFlow(recoveredBetterAuthClient, eccVerifier, responseVerificationKey)
     }
 

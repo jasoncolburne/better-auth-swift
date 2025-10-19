@@ -36,14 +36,24 @@ public struct DevicePaths: Sendable {
     }
 }
 
+public struct RecoveryPaths: Sendable {
+    public let change: String
+
+    public init(change: String) {
+        self.change = change
+    }
+}
+
 public struct IAuthenticationPaths: Sendable {
     public let account: AccountPaths
     public let session: SessionPaths
     public let device: DevicePaths
+    public let recovery: RecoveryPaths
 
-    public init(account: AccountPaths, session: SessionPaths, device: DevicePaths) {
+    public init(account: AccountPaths, session: SessionPaths, device: DevicePaths, recovery: RecoveryPaths) {
         self.account = account
         self.session = session
         self.device = device
+        self.recovery = recovery
     }
 }

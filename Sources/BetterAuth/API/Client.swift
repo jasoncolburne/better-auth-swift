@@ -287,6 +287,37 @@ public class BetterAuthClient {
         try await authenticationKeyStore.rotate()
     }
 
+    public func changeRecoveryKey(recoveryHash: String) async throws {
+        let (signingKey, rotationHash) = try await authenticationKeyStore.next()
+        let nonce = try await noncer.generate128()
+
+        let request = try await ChangeRecoveryKeyRequest(
+            authentication: [
+                "device": deviceIdentifierStore.get(),
+                "identity": identityIdentifierStore.get(),
+                "publicKey": signingKey.public(),
+                "recoveryHash": recoveryHash,
+                "rotationHash": rotationHash,
+            ],
+            nonce: nonce
+        )
+
+        try await request.sign(signingKey)
+        let message = try await request.serialize()
+        let reply = try await network.sendRequest(paths.recovery.change, message)
+
+        let response = try ChangeRecoveryKeyResponse.parse(reply)
+        let responsePayload = response.payload as! [String: Any]
+        let access = responsePayload["access"] as! [String: Any]
+        try await verifyResponse(response, access["serverIdentity"] as! String)
+
+        if access["nonce"] as! String != nonce {
+            throw BetterAuthError.incorrectNonce
+        }
+
+        try await authenticationKeyStore.rotate()
+    }
+
     public func createSession() async throws {
         let startNonce = try await noncer.generate128()
 
