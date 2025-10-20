@@ -1,6 +1,6 @@
 import Foundation
 
-public class ServerResponse<T>: SignableMessage {
+open class ServerResponse<T>: SignableMessage {
     override public var payload: Any? {
         get { _payload }
         set { _payload = (newValue as? [String: Any]) ?? _payload }
