@@ -197,7 +197,7 @@ final class IntegrationTests: XCTestCase {
         let newRecoveryHash = try await hasher.sum(newRecoverySigner.public())
         let nextRecoveryHash = try await hasher.sum(nextRecoverySigner.public())
 
-        try await betterAuthClient.changeRecoveryKey(recoveryHash: newRecoveryHash)
+        try await betterAuthClient.changeRecoveryKey(newRecoveryHash)
         try await recoveredBetterAuthClient.recoverAccount(identity, newRecoverySigner, nextRecoveryHash)
         try await executeFlow(recoveredBetterAuthClient, eccVerifier, responseVerificationKey)
     }
