@@ -287,7 +287,7 @@ public class BetterAuthClient {
         try await authenticationKeyStore.rotate()
     }
 
-    public func changeRecoveryKey(recoveryHash: String) async throws {
+    public func changeRecoveryKey(_ recoveryHash: String) async throws {
         let (signingKey, rotationHash) = try await authenticationKeyStore.next()
         let nonce = try await noncer.generate128()
 
