@@ -107,7 +107,7 @@ func testAccess(
     let responsePayload = response.payload as! [String: Any]
     let responseData = responsePayload["response"] as! [String: Any]
     if responseData["wasFoo"] as! String != "bar" || responseData["wasBar"] as! String != "foo" {
-        throw BetterAuthError.invalidData
+        throw BetterAuthError.invalidMessage(details: "Response data validation failed")
     }
 }
 
@@ -298,8 +298,8 @@ final class IntegrationTests: XCTestCase {
             _ = try await betterAuthClient.makeAccessRequest("/bad/nonce", message)
 
             XCTFail("expected a failure")
-        } catch BetterAuthError.incorrectNonce {
-            // Expected
+        } catch let error as BetterAuthError {
+            XCTAssertEqual(error.code, "BA203") // incorrectNonce
         }
     }
 }

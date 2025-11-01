@@ -21,7 +21,10 @@ public class CreateAccountRequest: ClientRequest<[String: Any]> {
               let access = payload["access"] as? [String: Any],
               let nonce = access["nonce"] as? String
         else {
-            throw BetterAuthError.invalidData
+            throw BetterAuthError.deserializationError(
+                messageType: "AccountMessage",
+                details: "Missing required fields"
+            )
         }
 
         let result = CreateAccountRequest(authentication: authentication, nonce: nonce)
@@ -73,7 +76,10 @@ public class DeleteAccountRequest: ClientRequest<[String: Any]> {
               let access = payload["access"] as? [String: Any],
               let nonce = access["nonce"] as? String
         else {
-            throw BetterAuthError.invalidData
+            throw BetterAuthError.deserializationError(
+                messageType: "AccountMessage",
+                details: "Missing required fields"
+            )
         }
 
         let result = DeleteAccountRequest(authentication: authentication, nonce: nonce)

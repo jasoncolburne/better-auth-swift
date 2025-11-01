@@ -13,7 +13,7 @@ open class SignableMessage: SerializableMessage {
 
     open func composePayload() throws -> String {
         guard let payload else {
-            throw BetterAuthError.payloadNotDefined
+            throw BetterAuthError.invalidMessage(field: "payload", details: "Payload not defined")
         }
         let jsonData = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
         return String(data: jsonData, encoding: .utf8)!
@@ -21,7 +21,7 @@ open class SignableMessage: SerializableMessage {
 
     public func serialize() async throws -> String {
         guard let signature else {
-            throw BetterAuthError.nullSignature
+            throw BetterAuthError.invalidMessage(field: "signature", details: "Signature is null")
         }
         let payloadString = try composePayload()
         return "{\"payload\":\(payloadString),\"signature\":\"\(signature)\"}"
@@ -33,25 +33,9 @@ open class SignableMessage: SerializableMessage {
 
     public func verify(_ verifier: any IVerifier, _ publicKey: String) async throws {
         guard let signature else {
-            throw BetterAuthError.nullSignature
+            throw BetterAuthError.invalidMessage(field: "signature", details: "Signature is null")
         }
         let payloadToVerify = try originalPayloadString ?? composePayload()
         try await verifier.verify(payloadToVerify, signature, publicKey)
     }
-}
-
-public enum BetterAuthError: Error {
-    case payloadNotDefined
-    case nullSignature
-    case hashMismatch
-    case incorrectNonce
-    case invalidData
-    case keypairNotGenerated
-    case nothingToGet
-    case callInitializeFirst
-    case callNextFirst
-    case tokenFromFuture
-    case tokenExpired
-    case staleRequest
-    case requestFromFuture
 }

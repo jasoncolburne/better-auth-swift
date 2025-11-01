@@ -29,7 +29,10 @@ public class RequestSessionRequest: SerializableMessage {
               let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let payload = json["payload"] as? [String: Any]
         else {
-            throw BetterAuthError.invalidData
+            throw BetterAuthError.deserializationError(
+                messageType: "SessionMessage",
+                details: "Missing required fields"
+            )
         }
         return RequestSessionRequest(payload: payload)
     }
@@ -69,7 +72,10 @@ public class CreateSessionRequest: ClientRequest<[String: Any]> {
               let access = request["access"] as? [String: Any],
               let auth = request["authentication"] as? [String: Any]
         else {
-            throw BetterAuthError.invalidData
+            throw BetterAuthError.deserializationError(
+                messageType: "SessionMessage",
+                details: "Missing required fields"
+            )
         }
 
         let result = CreateSessionRequest(access: access, authentication: auth, nonce: nonce)

@@ -40,7 +40,7 @@ public class LinkContainer: SignableMessage {
               let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let payload = json["payload"] as? [String: Any]
         else {
-            throw BetterAuthError.invalidData
+            throw BetterAuthError.deserializationError(messageType: "DeviceMessage", details: "Missing required fields")
         }
         let result = LinkContainer(payload: payload)
         result.signature = json["signature"] as? String
@@ -128,7 +128,7 @@ public class RotateDeviceRequest: ClientRequest<[String: Any]> {
               let access = payload["access"] as? [String: Any],
               let nonce = access["nonce"] as? String
         else {
-            throw BetterAuthError.invalidData
+            throw BetterAuthError.deserializationError(messageType: "DeviceMessage", details: "Missing required fields")
         }
 
         let result = RotateDeviceRequest(authentication: authentication, nonce: nonce)

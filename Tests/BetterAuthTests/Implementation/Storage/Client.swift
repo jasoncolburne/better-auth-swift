@@ -29,7 +29,7 @@ class ClientRotatingKeyStore: IClientRotatingKeyStore {
 
     func next() async throws -> (any ISigningKey, String) {
         guard let nextKey else {
-            throw BetterAuthError.callInitializeFirst
+            throw BetterAuthError.invalidState(currentState: "uninitialized", attemptedOperation: "next/rotate/signer", requiredState: "initialized")
         }
 
         if futureKey == nil {
@@ -45,11 +45,11 @@ class ClientRotatingKeyStore: IClientRotatingKeyStore {
 
     func rotate() async throws {
         guard let nextKey else {
-            throw BetterAuthError.callInitializeFirst
+            throw BetterAuthError.invalidState(currentState: "uninitialized", attemptedOperation: "next/rotate/signer", requiredState: "initialized")
         }
 
         guard let futureKey else {
-            throw BetterAuthError.callNextFirst
+            throw BetterAuthError.invalidState(currentState: "next not called", attemptedOperation: "rotate", requiredState: "next called")
         }
 
         currentKey = nextKey
@@ -59,7 +59,7 @@ class ClientRotatingKeyStore: IClientRotatingKeyStore {
 
     func signer() async throws -> any ISigningKey {
         guard let currentKey else {
-            throw BetterAuthError.callInitializeFirst
+            throw BetterAuthError.invalidState(currentState: "uninitialized", attemptedOperation: "next/rotate/signer", requiredState: "initialized")
         }
 
         return currentKey
@@ -75,7 +75,7 @@ class ClientValueStore: IClientValueStore {
 
     func get() async throws -> String {
         guard let value else {
-            throw BetterAuthError.nothingToGet
+            throw BetterAuthError.notFound(resourceType: "stored value")
         }
 
         return value
