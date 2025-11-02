@@ -32,7 +32,10 @@ open class ServerResponse<T>: SignableMessage {
               let serverIdentity = access["serverIdentity"] as? String,
               let nonce = access["nonce"] as? String
         else {
-            throw BetterAuthError.invalidData
+            throw BetterAuthError.invalidMessage(
+                field: "ResponseMessage",
+                details: "Missing required fields"
+            )
         }
 
         let result = constructor(response, serverIdentity, nonce)

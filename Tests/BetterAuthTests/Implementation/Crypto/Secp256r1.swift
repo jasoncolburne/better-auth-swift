@@ -15,7 +15,7 @@ class Secp256r1Verifier: IVerifier {
         let sig = try P256.Signing.ECDSASignature(rawRepresentation: signatureBytes)
 
         guard key.isValidSignature(sig, for: messageBytes) else {
-            throw BetterAuthError.invalidData
+            throw NSError(domain: "BetterAuth", code: 4, userInfo: [NSLocalizedDescriptionKey: "Signature verification failed"])
         }
     }
 }
@@ -30,7 +30,7 @@ class Secp256r1: ISigningKey {
 
     func sign(_ message: String) async throws -> String {
         guard let keyPair else {
-            throw BetterAuthError.keypairNotGenerated
+            throw NSError(domain: "BetterAuth", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid state"])
         }
 
         let messageBytes = message.data(using: .utf8)!
@@ -46,7 +46,7 @@ class Secp256r1: ISigningKey {
 
     func `public`() async throws -> String {
         guard let keyPair else {
-            throw BetterAuthError.keypairNotGenerated
+            throw NSError(domain: "BetterAuth", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid state"])
         }
 
         let publicKey = keyPair.publicKey

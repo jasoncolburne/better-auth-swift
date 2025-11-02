@@ -15,12 +15,12 @@ class Rfc3339Nano: ITimestamper {
             return date
         }
         guard let string = when as? String else {
-            throw BetterAuthError.invalidData
+            throw NSError(domain: "BetterAuth", code: 3, userInfo: [NSLocalizedDescriptionKey: "Deserialization error"])
         }
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         guard let date = formatter.date(from: string) else {
-            throw BetterAuthError.invalidData
+            throw NSError(domain: "BetterAuth", code: 3, userInfo: [NSLocalizedDescriptionKey: "Deserialization error"])
         }
         return date
     }

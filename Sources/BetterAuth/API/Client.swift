@@ -82,8 +82,9 @@ public class BetterAuthClient {
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
 
-        if access["nonce"] as! String != nonce {
-            throw BetterAuthError.incorrectNonce
+        let responseNonce = access["nonce"] as! String
+        if responseNonce != nonce {
+            throw BetterAuthError.incorrectNonce(expected: nonce, actual: responseNonce)
         }
 
         try await identityIdentifierStore.store(identity)
@@ -122,8 +123,9 @@ public class BetterAuthClient {
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
 
-        if access["nonce"] as! String != nonce {
-            throw BetterAuthError.incorrectNonce
+        let responseNonce = access["nonce"] as! String
+        if responseNonce != nonce {
+            throw BetterAuthError.incorrectNonce(expected: nonce, actual: responseNonce)
         }
 
         try await identityIdentifierStore.store(identity)
@@ -176,8 +178,9 @@ public class BetterAuthClient {
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
 
-        if access["nonce"] as! String != nonce {
-            throw BetterAuthError.incorrectNonce
+        let responseNonce = access["nonce"] as! String
+        if responseNonce != nonce {
+            throw BetterAuthError.incorrectNonce(expected: nonce, actual: responseNonce)
         }
 
         try await authenticationKeyStore.rotate()
@@ -216,8 +219,9 @@ public class BetterAuthClient {
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
 
-        if access["nonce"] as! String != nonce {
-            throw BetterAuthError.incorrectNonce
+        let responseNonce = access["nonce"] as! String
+        if responseNonce != nonce {
+            throw BetterAuthError.incorrectNonce(expected: nonce, actual: responseNonce)
         }
 
         try await authenticationKeyStore.rotate()
@@ -250,8 +254,9 @@ public class BetterAuthClient {
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
 
-        if access["nonce"] as! String != nonce {
-            throw BetterAuthError.incorrectNonce
+        let responseNonce = access["nonce"] as! String
+        if responseNonce != nonce {
+            throw BetterAuthError.incorrectNonce(expected: nonce, actual: responseNonce)
         }
 
         try await authenticationKeyStore.rotate()
@@ -280,8 +285,9 @@ public class BetterAuthClient {
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
 
-        if access["nonce"] as! String != nonce {
-            throw BetterAuthError.incorrectNonce
+        let responseNonce = access["nonce"] as! String
+        if responseNonce != nonce {
+            throw BetterAuthError.incorrectNonce(expected: nonce, actual: responseNonce)
         }
 
         try await authenticationKeyStore.rotate()
@@ -311,13 +317,15 @@ public class BetterAuthClient {
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
 
-        if access["nonce"] as! String != nonce {
-            throw BetterAuthError.incorrectNonce
+        let responseNonce = access["nonce"] as! String
+        if responseNonce != nonce {
+            throw BetterAuthError.incorrectNonce(expected: nonce, actual: responseNonce)
         }
 
         try await authenticationKeyStore.rotate()
     }
 
+    // swiftlint:disable:next function_body_length
     public func createSession() async throws {
         let startNonce = try await noncer.generate128()
 
@@ -338,8 +346,9 @@ public class BetterAuthClient {
         let startAccess = startPayload["access"] as! [String: Any]
         try await verifyResponse(startResponse, startAccess["serverIdentity"] as! String)
 
-        if startAccess["nonce"] as! String != startNonce {
-            throw BetterAuthError.incorrectNonce
+        let startResponseNonce = startAccess["nonce"] as! String
+        if startResponseNonce != startNonce {
+            throw BetterAuthError.incorrectNonce(expected: startNonce, actual: startResponseNonce)
         }
 
         let (_, publicKey, rotationHash) = try await accessKeyStore.initialize(nil)
@@ -370,8 +379,12 @@ public class BetterAuthClient {
         let finishAccess = finishPayload["access"] as! [String: Any]
         try await verifyResponse(finishResponse, finishAccess["serverIdentity"] as! String)
 
-        if finishAccess["nonce"] as! String != finishNonce {
-            throw BetterAuthError.incorrectNonce
+        let finishResponseNonce = finishAccess["nonce"] as! String
+        if finishResponseNonce != finishNonce {
+            throw BetterAuthError.incorrectNonce(
+                expected: finishNonce,
+                actual: finishResponseNonce
+            )
         }
 
         let finishResponseData = finishPayload["response"] as! [String: Any]
@@ -403,8 +416,9 @@ public class BetterAuthClient {
         let access = responsePayload["access"] as! [String: Any]
         try await verifyResponse(response, access["serverIdentity"] as! String)
 
-        if access["nonce"] as! String != nonce {
-            throw BetterAuthError.incorrectNonce
+        let responseNonce = access["nonce"] as! String
+        if responseNonce != nonce {
+            throw BetterAuthError.incorrectNonce(expected: nonce, actual: responseNonce)
         }
 
         let responseData = responsePayload["response"] as! [String: Any]
@@ -433,8 +447,10 @@ public class BetterAuthClient {
         let requestPayload = accessRequest.payload as! [String: Any]
         let requestAccess = requestPayload["access"] as! [String: Any]
 
-        if responseAccess["nonce"] as! String != requestAccess["nonce"] as! String {
-            throw BetterAuthError.incorrectNonce
+        let requestNonce = requestAccess["nonce"] as! String
+        let responseNonceValue = responseAccess["nonce"] as! String
+        if responseNonceValue != requestNonce {
+            throw BetterAuthError.incorrectNonce(expected: requestNonce, actual: responseNonceValue)
         }
 
         return reply

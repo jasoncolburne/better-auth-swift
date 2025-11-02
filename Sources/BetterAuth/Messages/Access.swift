@@ -52,14 +52,14 @@ public class AccessRequest<T>: SignableMessage {
 
     override open func composePayload() throws -> String {
         guard let payload = _payload["access"] else {
-            throw BetterAuthError.payloadNotDefined
+            throw BetterAuthError.invalidMessage(field: "access", details: "Access payload not defined")
         }
         let accessData = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
         let accessString = String(data: accessData, encoding: .utf8)!
 
         // Use the cached request string (cached in init)
         guard let requestString = cachedRequestString else {
-            throw BetterAuthError.payloadNotDefined
+            throw BetterAuthError.invalidMessage(field: "request", details: "Request string not cached")
         }
 
         return "{\"access\":\(accessString),\"request\":\(requestString)}"
