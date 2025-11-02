@@ -30,8 +30,8 @@ public class ClientRequest<T>: SignableMessage {
               let access = payload["access"] as? [String: Any],
               let nonce = access["nonce"] as? String
         else {
-            throw BetterAuthError.deserializationError(
-                messageType: "RequestMessage",
+            throw BetterAuthError.invalidMessage(
+                field: "RequestMessage",
                 details: "Missing required fields"
             )
         }

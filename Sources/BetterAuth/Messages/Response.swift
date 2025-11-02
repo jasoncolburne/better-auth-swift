@@ -32,8 +32,8 @@ open class ServerResponse<T>: SignableMessage {
               let serverIdentity = access["serverIdentity"] as? String,
               let nonce = access["nonce"] as? String
         else {
-            throw BetterAuthError.deserializationError(
-                messageType: "ResponseMessage",
+            throw BetterAuthError.invalidMessage(
+                field: "ResponseMessage",
                 details: "Missing required fields"
             )
         }

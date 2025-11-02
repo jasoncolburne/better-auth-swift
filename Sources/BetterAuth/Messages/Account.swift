@@ -21,8 +21,8 @@ public class CreateAccountRequest: ClientRequest<[String: Any]> {
               let access = payload["access"] as? [String: Any],
               let nonce = access["nonce"] as? String
         else {
-            throw BetterAuthError.deserializationError(
-                messageType: "AccountMessage",
+            throw BetterAuthError.invalidMessage(
+                field: "AccountMessage",
                 details: "Missing required fields"
             )
         }
@@ -76,8 +76,8 @@ public class DeleteAccountRequest: ClientRequest<[String: Any]> {
               let access = payload["access"] as? [String: Any],
               let nonce = access["nonce"] as? String
         else {
-            throw BetterAuthError.deserializationError(
-                messageType: "AccountMessage",
+            throw BetterAuthError.invalidMessage(
+                field: "AccountMessage",
                 details: "Missing required fields"
             )
         }

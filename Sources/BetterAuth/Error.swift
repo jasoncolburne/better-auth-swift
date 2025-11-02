@@ -1,7 +1,5 @@
 import Foundation
 
-// swiftlint:disable file_length
-
 // MARK: - Better Auth Error
 
 public struct BetterAuthError: Error, Codable, @unchecked Sendable {
@@ -97,25 +95,6 @@ public struct BetterAuthError: Error, Codable, @unchecked Sendable {
 
     // MARK: - Cryptographic Errors
 
-    /// Signature verification failed (BA201)
-    public static func signatureVerificationFailed(
-        publicKey: String? = nil,
-        signedData: String? = nil
-    ) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if publicKey != nil || signedData != nil {
-            context = [:]
-            if let publicKey { context?["publicKey"] = AnyCodable(publicKey) }
-            if let signedData { context?["signedData"] = AnyCodable(signedData) }
-        }
-
-        return BetterAuthError(
-            code: "BA201",
-            message: "Signature verification failed",
-            context: context
-        )
-    }
-
     /// Response nonce does not match request nonce (BA203)
     public static func incorrectNonce(
         expected: String? = nil,
@@ -135,56 +114,6 @@ public struct BetterAuthError: Error, Codable, @unchecked Sendable {
         return BetterAuthError(
             code: "BA203",
             message: "Response nonce does not match request nonce",
-            context: context
-        )
-    }
-
-    /// Authentication challenge has expired (BA204)
-    public static func expiredNonce(
-        nonceTimestamp: String? = nil,
-        currentTime: String? = nil,
-        expirationWindow: String? = nil
-    ) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if nonceTimestamp != nil || currentTime != nil || expirationWindow != nil {
-            context = [:]
-            if let nonceTimestamp {
-                context?["nonceTimestamp"] = AnyCodable(nonceTimestamp)
-            }
-            if let currentTime { context?["currentTime"] = AnyCodable(currentTime) }
-            if let expirationWindow {
-                context?["expirationWindow"] = AnyCodable(expirationWindow)
-            }
-        }
-
-        return BetterAuthError(
-            code: "BA204",
-            message: "Authentication challenge has expired",
-            context: context
-        )
-    }
-
-    /// Nonce has already been used (replay attack detected) (BA205)
-    public static func nonceReplay(
-        nonce: String? = nil,
-        previousUsageTimestamp: String? = nil
-    ) -> BetterAuthError {
-        let truncate: (String) -> String = { str in
-            str.count > 16 ? "\(str.prefix(16))..." : str
-        }
-
-        var context: [String: AnyCodable]?
-        if nonce != nil || previousUsageTimestamp != nil {
-            context = [:]
-            if let nonce { context?["nonce"] = AnyCodable(truncate(nonce)) }
-            if let previousUsageTimestamp {
-                context?["previousUsageTimestamp"] = AnyCodable(previousUsageTimestamp)
-            }
-        }
-
-        return BetterAuthError(
-            code: "BA205",
-            message: "Nonce has already been used (replay attack detected)",
             context: context
         )
     }
@@ -212,27 +141,6 @@ public struct BetterAuthError: Error, Codable, @unchecked Sendable {
         )
     }
 
-    /// Insufficient permissions for requested operation (BA303)
-    public static func permissionDenied(
-        requiredPermissions: [String]? = nil,
-        actualPermissions: [String]? = nil,
-        operation: String? = nil
-    ) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if requiredPermissions != nil || actualPermissions != nil || operation != nil {
-            context = [:]
-            if let requiredPermissions { context?["requiredPermissions"] = AnyCodable(requiredPermissions) }
-            if let actualPermissions { context?["actualPermissions"] = AnyCodable(actualPermissions) }
-            if let operation { context?["operation"] = AnyCodable(operation) }
-        }
-
-        return BetterAuthError(
-            code: "BA303",
-            message: "Insufficient permissions for requested operation",
-            context: context
-        )
-    }
-
     // MARK: - Token Errors
 
     /// Token has expired (BA401)
@@ -250,16 +158,6 @@ public struct BetterAuthError: Error, Codable, @unchecked Sendable {
         }
 
         return BetterAuthError(code: "BA401", message: "Token has expired", context: context)
-    }
-
-    /// Token structure or format is invalid (BA402)
-    public static func invalidToken(details: String? = nil) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if let details {
-            context = ["details": AnyCodable(details)]
-        }
-
-        return BetterAuthError(code: "BA402", message: "Token structure or format is invalid", context: context)
     }
 
     /// Token issued_at timestamp is in the future (BA403)
@@ -314,269 +212,9 @@ public struct BetterAuthError: Error, Codable, @unchecked Sendable {
 
         return BetterAuthError(code: "BA502", message: "Request timestamp is in the future", context: context)
     }
-
-    /// Client and server clock difference exceeds tolerance (BA503)
-    public static func clockSkew(
-        clientTime: String? = nil,
-        serverTime: String? = nil,
-        timeDifference: Double? = nil,
-        maxTolerance: Double? = nil
-    ) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if clientTime != nil || serverTime != nil || timeDifference != nil || maxTolerance != nil {
-            context = [:]
-            if let clientTime { context?["clientTime"] = AnyCodable(clientTime) }
-            if let serverTime { context?["serverTime"] = AnyCodable(serverTime) }
-            if let timeDifference { context?["timeDifference"] = AnyCodable(timeDifference) }
-            if let maxTolerance { context?["maxTolerance"] = AnyCodable(maxTolerance) }
-        }
-
-        return BetterAuthError(
-            code: "BA503",
-            message: "Client and server clock difference exceeds tolerance",
-            context: context
-        )
-    }
-
-    // MARK: - Storage Errors
-
-    /// Resource not found (BA601)
-    public static func notFound(resourceType: String? = nil, resourceIdentifier: String? = nil) -> BetterAuthError {
-        var message = "Resource not found"
-        if let resourceType {
-            message = "Resource not found: \(resourceType)"
-        }
-
-        var context: [String: AnyCodable]?
-        if resourceType != nil || resourceIdentifier != nil {
-            context = [:]
-            if let resourceType { context?["resourceType"] = AnyCodable(resourceType) }
-            if let resourceIdentifier { context?["resourceIdentifier"] = AnyCodable(resourceIdentifier) }
-        }
-
-        return BetterAuthError(code: "BA601", message: message, context: context)
-    }
-
-    /// Resource already exists (BA602)
-    public static func alreadyExists(
-        resourceType: String? = nil,
-        resourceIdentifier: String? = nil
-    ) -> BetterAuthError {
-        var message = "Resource already exists"
-        if let resourceType {
-            message = "Resource already exists: \(resourceType)"
-        }
-
-        var context: [String: AnyCodable]?
-        if resourceType != nil || resourceIdentifier != nil {
-            context = [:]
-            if let resourceType { context?["resourceType"] = AnyCodable(resourceType) }
-            if let resourceIdentifier { context?["resourceIdentifier"] = AnyCodable(resourceIdentifier) }
-        }
-
-        return BetterAuthError(code: "BA602", message: message, context: context)
-    }
-
-    /// Storage backend is unavailable (BA603)
-    public static func storageUnavailable(
-        backendType: String? = nil,
-        connectionDetails: String? = nil,
-        backendError: String? = nil
-    ) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if backendType != nil || connectionDetails != nil || backendError != nil {
-            context = [:]
-            if let backendType { context?["backendType"] = AnyCodable(backendType) }
-            if let connectionDetails { context?["connectionDetails"] = AnyCodable(connectionDetails) }
-            if let backendError { context?["backendError"] = AnyCodable(backendError) }
-        }
-
-        return BetterAuthError(code: "BA603", message: "Storage backend is unavailable", context: context)
-    }
-
-    /// Stored data is corrupted or invalid (BA604)
-    public static func storageCorruption(
-        resourceType: String? = nil,
-        resourceIdentifier: String? = nil,
-        corruptionDetails: String? = nil
-    ) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if resourceType != nil || resourceIdentifier != nil || corruptionDetails != nil {
-            context = [:]
-            if let resourceType { context?["resourceType"] = AnyCodable(resourceType) }
-            if let resourceIdentifier { context?["resourceIdentifier"] = AnyCodable(resourceIdentifier) }
-            if let corruptionDetails { context?["corruptionDetails"] = AnyCodable(corruptionDetails) }
-        }
-
-        return BetterAuthError(code: "BA604", message: "Stored data is corrupted or invalid", context: context)
-    }
-
-    // MARK: - Encoding Errors
-
-    /// Failed to serialize message (BA701)
-    public static func serializationError(
-        messageType: String? = nil,
-        format: String? = nil,
-        details: String? = nil
-    ) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if messageType != nil || format != nil || details != nil {
-            context = [:]
-            if let messageType { context?["messageType"] = AnyCodable(messageType) }
-            if let format { context?["format"] = AnyCodable(format) }
-            if let details { context?["details"] = AnyCodable(details) }
-        }
-
-        return BetterAuthError(code: "BA701", message: "Failed to serialize message", context: context)
-    }
-
-    /// Failed to deserialize message (BA702)
-    public static func deserializationError(
-        messageType: String? = nil,
-        rawData: String? = nil,
-        details: String? = nil
-    ) -> BetterAuthError {
-        let truncateData: (String) -> String = { str in
-            str.count > 100 ? "\(str.prefix(100))..." : str
-        }
-
-        var context: [String: AnyCodable]?
-        if messageType != nil || rawData != nil || details != nil {
-            context = [:]
-            if let messageType { context?["messageType"] = AnyCodable(messageType) }
-            if let rawData { context?["rawData"] = AnyCodable(truncateData(rawData)) }
-            if let details { context?["details"] = AnyCodable(details) }
-        }
-
-        return BetterAuthError(code: "BA702", message: "Failed to deserialize message", context: context)
-    }
-
-    /// Failed to compress or decompress data (BA703)
-    public static func compressionError(
-        operation: String? = nil,
-        dataSize: Int? = nil,
-        details: String? = nil
-    ) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if operation != nil || dataSize != nil || details != nil {
-            context = [:]
-            if let operation { context?["operation"] = AnyCodable(operation) }
-            if let dataSize { context?["dataSize"] = AnyCodable(dataSize) }
-            if let details { context?["details"] = AnyCodable(details) }
-        }
-
-        return BetterAuthError(code: "BA703", message: "Failed to compress or decompress data", context: context)
-    }
-
-    // MARK: - Network Errors
-
-    /// Failed to connect to server (BA801)
-    public static func connectionError(serverUrl: String? = nil, details: String? = nil) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if serverUrl != nil || details != nil {
-            context = [:]
-            if let serverUrl { context?["serverUrl"] = AnyCodable(serverUrl) }
-            if let details { context?["details"] = AnyCodable(details) }
-        }
-
-        return BetterAuthError(code: "BA801", message: "Failed to connect to server", context: context)
-    }
-
-    /// Request timed out (BA802)
-    public static func timeout(timeoutDuration: Int? = nil, endpoint: String? = nil) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if timeoutDuration != nil || endpoint != nil {
-            context = [:]
-            if let timeoutDuration { context?["timeoutDuration"] = AnyCodable(timeoutDuration) }
-            if let endpoint { context?["endpoint"] = AnyCodable(endpoint) }
-        }
-
-        return BetterAuthError(code: "BA802", message: "Request timed out", context: context)
-    }
-
-    /// Invalid HTTP response or protocol violation (BA803)
-    public static func protocolError(httpStatusCode: Int? = nil, details: String? = nil) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if httpStatusCode != nil || details != nil {
-            context = [:]
-            if let httpStatusCode { context?["httpStatusCode"] = AnyCodable(httpStatusCode) }
-            if let details { context?["details"] = AnyCodable(details) }
-        }
-
-        return BetterAuthError(code: "BA803", message: "Invalid HTTP response or protocol violation", context: context)
-    }
-
-    // MARK: - Protocol Errors
-
-    /// Operation not allowed in current state (BA901)
-    public static func invalidState(
-        currentState: String? = nil,
-        attemptedOperation: String? = nil,
-        requiredState: String? = nil
-    ) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if currentState != nil || attemptedOperation != nil || requiredState != nil {
-            context = [:]
-            if let currentState { context?["currentState"] = AnyCodable(currentState) }
-            if let attemptedOperation { context?["attemptedOperation"] = AnyCodable(attemptedOperation) }
-            if let requiredState { context?["requiredState"] = AnyCodable(requiredState) }
-        }
-
-        return BetterAuthError(code: "BA901", message: "Operation not allowed in current state", context: context)
-    }
-
-    /// Key rotation failed (BA902)
-    public static func rotationError(rotationType: String? = nil, details: String? = nil) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if rotationType != nil || details != nil {
-            context = [:]
-            if let rotationType { context?["rotationType"] = AnyCodable(rotationType) }
-            if let details { context?["details"] = AnyCodable(details) }
-        }
-
-        return BetterAuthError(code: "BA902", message: "Key rotation failed", context: context)
-    }
-
-    /// Account recovery failed (BA903)
-    public static func recoveryError(details: String? = nil) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if let details {
-            context = ["details": AnyCodable(details)]
-        }
-
-        return BetterAuthError(code: "BA903", message: "Account recovery failed", context: context)
-    }
-
-    /// Device has been revoked (BA904)
-    public static func deviceRevoked(
-        deviceIdentifier: String? = nil,
-        revocationTimestamp: String? = nil
-    ) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if deviceIdentifier != nil || revocationTimestamp != nil {
-            context = [:]
-            if let deviceIdentifier { context?["deviceIdentifier"] = AnyCodable(deviceIdentifier) }
-            if let revocationTimestamp { context?["revocationTimestamp"] = AnyCodable(revocationTimestamp) }
-        }
-
-        return BetterAuthError(code: "BA904", message: "Device has been revoked", context: context)
-    }
-
-    /// Identity has been deleted (BA905)
-    public static func identityDeleted(
-        identityIdentifier: String? = nil,
-        deletionTimestamp: String? = nil
-    ) -> BetterAuthError {
-        var context: [String: AnyCodable]?
-        if identityIdentifier != nil || deletionTimestamp != nil {
-            context = [:]
-            if let identityIdentifier { context?["identityIdentifier"] = AnyCodable(identityIdentifier) }
-            if let deletionTimestamp { context?["deletionTimestamp"] = AnyCodable(deletionTimestamp) }
-        }
-
-        return BetterAuthError(code: "BA905", message: "Identity has been deleted", context: context)
-    }
 }
+
+// MARK: - Storage, Network, and Protocol Errors - Removed (unused in client implementation)
 
 // MARK: - AnyCodable
 

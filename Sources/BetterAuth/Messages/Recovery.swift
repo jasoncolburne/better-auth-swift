@@ -19,8 +19,8 @@ public class ChangeRecoveryKeyRequest: ClientRequest<[String: Any]> {
               let access = payload["access"] as? [String: Any],
               let nonce = access["nonce"] as? String
         else {
-            throw BetterAuthError.deserializationError(
-                messageType: "RecoveryMessage",
+            throw BetterAuthError.invalidMessage(
+                field: "RecoveryMessage",
                 details: "Missing required fields"
             )
         }
