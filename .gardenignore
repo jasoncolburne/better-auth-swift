@@ -1,0 +1,11 @@
+# Swift build artifacts
+.build
+.swiftpm
+*.xcodeproj
+*.xcworkspace
+
+# Logs
+*.log
+
+# OS
+.DS_Store
